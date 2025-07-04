@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "885018787225",
+    "project_id": "voice-task-73688",
+    "storage_bucket": "voice-task-73688.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:885018787225:android:b83384b70325047a46e708",
+        "android_client_info": {
+          "package_name": "com.nugroho.voicetask"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLYyiBV3hKwh-Dp8lekuuTiHmw5nP-Sis"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
