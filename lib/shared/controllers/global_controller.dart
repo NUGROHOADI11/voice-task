@@ -1,19 +1,20 @@
+import 'dart:developer';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
-// import '../../../utils/services/hive_service.dart';
+import '../../configs/routes/route.dart';
 import '../../constants/core/api/api_constant.dart';
+import '../../features/landing/repositories/landing_repository.dart';
+import '../../features/note/repositories/note_repository.dart';
+import '../../features/task/repositories/task_repository.dart';
 
 class GlobalController extends GetxController {
   static GlobalController get to => Get.find();
   var isConnected = false.obs;
   var baseUrl = ApiConstant.production;
   var isStaging = false.obs;
-
-  var id = ''.obs;
-  var name = ''.obs;
-  var photo = ''.obs;
   RxString statusLocation = RxString('loading');
   RxString messageLocation = RxString('');
   Rxn<Position> position = Rxn<Position>();
@@ -38,74 +39,51 @@ class GlobalController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    checkLocationPermission();
-    // checkConnection();
+    checkConnection();
+
     Connectivity()
         .onConnectivityChanged
-        .listen((List<ConnectivityResult> results) {
+        .listen((List<ConnectivityResult> results) async {
       bool hasInternet =
           results.any((result) => result != ConnectivityResult.none);
       isConnected.value = hasInternet;
-      // if (!hasInternet) {
-      //   Get.to(() => NoConnectionScreen());
-      // }
+
+      if (hasInternet) {
+        final user = LandingRepository().getUserProfile();
+
+        if (user != null) {
+          try {
+            await NoteRepository().syncNotesToFirebase();
+            await TaskRepository().syncTasksToFirebase();
+            log("Notes synced successfully");
+          } catch (e) {
+            log("Error syncing notes: $e");
+          }
+
+          if (Get.currentRoute == Routes.offlineRoute) {
+            Get.offAllNamed(Routes.homeRoute);
+          }
+        } else {
+          log("User not logged in, skipping sync.");
+        }
+      } else {
+        Get.offAllNamed(Routes.offlineRoute);
+      }
     });
   }
 
-  // @override
-  // void onReady() {
-  //   super.onReady();
-
-  //   // getLocation();
-  //   // LocationServices.streamService.listen((status) => getLocation());
-
-  //   // id.value = LocalStorageService.box.get("idUser") ?? "";
-  //   // name.value = LocalStorageService.box.get("nama") ?? "";
-  //   // photo.value = LocalStorageService.box.get("foto") ?? "";
-  // }
-
-  // Future<void> checkConnection() async {
-  //   try {
-  //     List<ConnectivityResult> connectivityResults =
-  //         await Connectivity().checkConnectivity();
-  //     bool hasInternet = connectivityResults
-  //         .any((result) => result != ConnectivityResult.none);
-  //     isConnected.value = hasInternet;
-  //     if (!hasInternet) {
-  //       Get.to(() => NoConnectionScreen());
-  //     }
-  //   } catch (e) {
-  //     isConnected.value = false;
-  //   }
-  // }
-
-  // Future<void> getLocation() async {
-  //   if (Get.isDialogOpen == false) {
-  //     Get.dialog(const GetLocationScreen(), barrierDismissible: false);
-  //   }
-
-  //   try {
-  //     /// Mendapatkan Lokasi saat ini
-  //     statusLocation.value = 'loading';
-  //     final locationResult = await LocationServices.getCurrentPosition();
-
-  //     if (locationResult.success) {
-  //       /// Jika jarak lokasi cukup dekat, dapatkan informasi alamat
-  //       position.value = locationResult.position;
-  //       address.value = locationResult.address;
-  //       statusLocation.value = 'success';
-
-  //       await Future.delayed(const Duration(seconds: 5));
-  //       // Get.offAllNamed(Routes.splashRoute);
-  //     } else {
-  //       /// Jika jarak lokasi tidak cukup dekat, tampilkan pesan
-  //       statusLocation.value = 'error';
-  //       messageLocation.value = locationResult.message!;
-  //     }
-  //   } catch (e) {
-  //     /// Jika terjadi kesalahan server
-  //     statusLocation.value = 'error';
-  //     messageLocation.value = 'Server error'.tr;
-  //   }
-  // }
+  Future<void> checkConnection() async {
+    try {
+      List<ConnectivityResult> connectivityResults =
+          await Connectivity().checkConnectivity();
+      bool hasInternet = connectivityResults
+          .any((result) => result != ConnectivityResult.none);
+      isConnected.value = hasInternet;
+      if (!hasInternet) {
+        Get.offAllNamed(Routes.offlineRoute);
+      }
+    } catch (e) {
+      isConnected.value = false;
+    }
+  }
 }

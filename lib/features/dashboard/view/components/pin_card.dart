@@ -6,10 +6,9 @@ import 'package:intl/intl.dart';
 import 'package:voice_task/utils/services/firestore_service.dart';
 
 import '../../../../configs/routes/route.dart';
-import '../../../../shared/styles/color_style.dart';
 import '../../../note/controllers/note_controller.dart';
 import '../../../note/sub_features/add_note/models/note_model.dart';
-import '../../../../shared/widgets/quill_viewer.dart';
+import '../../../note/view/components/note_card.dart';
 import 'action_card.dart';
 
 Widget buildPinList() {
@@ -49,7 +48,7 @@ Widget buildPinList() {
                   ? Color(note.colorValue!)
                   : Colors.grey.shade200;
 
-              return buildPinCard(
+              return buildNoteCard(
                 title: note.title,
                 content: note.content,
                 time: formattedTime,
@@ -57,6 +56,13 @@ Widget buildPinList() {
                 backgroundColor: backgroundColor,
                 onTap: () => Get.toNamed(Routes.detailNoteRoute,
                     arguments: {'noteId': noteId}),
+                onPinButtonPressed: () {
+                  NoteController.to.togglePin(
+                    noteId,
+                    note,
+                  );
+                },
+                isPinned: note.isPin,
               );
             },
           ),
@@ -64,60 +70,5 @@ Widget buildPinList() {
       }
       return const Center(child: CircularProgressIndicator());
     },
-  );
-}
-
-Widget buildPinCard({
-  required String title,
-  required String content,
-  required String time,
-  required String date,
-  required Color backgroundColor,
-  required VoidCallback onTap,
-}) {
-  final bool isDark = backgroundColor == ColorStyle.primary ||
-      backgroundColor == ColorStyle.dark ||
-      backgroundColor == Colors.black;
-
-  final Color textColor = isDark ? Colors.white : Colors.black;
-  final Color subColor = isDark ? Colors.white70 : Colors.grey.shade800;
-  final Color dateColor = isDark ? Colors.white60 : Colors.black54;
-
-  return InkWell(
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title,
-              style: TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
-          const SizedBox(height: 6),
-          const SizedBox(height: 6),
-          IgnorePointer(
-            child: QuillViewer(
-              jsonString: content,
-              defaultTextStyle: TextStyle(color: textColor),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(time, style: TextStyle(color: subColor)),
-          const SizedBox(height: 4),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Text(date,
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: dateColor)),
-          ),
-        ],
-      ),
-    ),
   );
 }

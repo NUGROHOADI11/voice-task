@@ -43,7 +43,7 @@ class DetailNoteScreen extends StatelessWidget {
         }),
         action: IconButton(
           onPressed: () {
-            controller.deleteNote();
+            controller.confirmDeleteNote();
           },
           icon: const Icon(Icons.delete_outline),
           color: ColorStyle.black,

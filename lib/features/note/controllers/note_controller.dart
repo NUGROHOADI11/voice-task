@@ -68,5 +68,10 @@ class NoteController extends GetxController {
     }
   }
 
-  // TODO: onCLose
+  void togglePin(id, Note note) {
+    _firestoreService.updateNote(id, {
+      'isPin': !note.isPin,
+      'updatedAt': DateTime.now().toIso8601String(),
+    });
+  }
 }

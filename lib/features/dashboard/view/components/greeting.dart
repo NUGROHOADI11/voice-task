@@ -67,13 +67,7 @@ Widget _buildGreetingText() {
             fontWeight: FontWeight.w800,
             color: Colors.white,
           )),
-      //  Obx(() => Text('Tasks Today: ${DashboardController.to.todayTaskCount.value}',
-      //   style: const TextStyle(
-      //     fontSize: 18,
-      //     fontWeight: FontWeight.w500,
-      //     color: Colors.white,
-      //   ),
-      // )),
+   
     ],
   );
 }

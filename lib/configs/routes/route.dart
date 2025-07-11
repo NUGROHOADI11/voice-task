@@ -13,4 +13,5 @@ abstract class Routes {
   static const String notificationRoute = '/notification';
   static const String taskAddTaskRoute = '/task_add_task';
   static const String noteAddNoteRoute = '/note_add_note';
+static const String offlineRoute = '/offline';
 }

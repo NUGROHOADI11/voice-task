@@ -12,6 +12,7 @@ Widget buildNoteCard({
   required Color backgroundColor,
   required VoidCallback onPinButtonPressed,
   required bool isPinned,
+  bool showPinButton = true,
   required VoidCallback onTap,
 }) {
   final bool isDark = backgroundColor == ColorStyle.primary ||
@@ -43,21 +44,25 @@ Widget buildNoteCard({
                         fontWeight: FontWeight.bold,
                         color: textColor)),
               ),
-              InkWell(
-                onTap: onPinButtonPressed,
-                child: Icon(
-                  isPinned ? Icons.push_pin : Icons.push_pin_outlined,
-                  size: 18.h,
-                  color: textColor,
-                ),
-              )
+              if (showPinButton)
+                InkWell(
+                  onTap: onPinButtonPressed,
+                  child: Icon(
+                    isPinned ? Icons.push_pin : Icons.push_pin_outlined,
+                    size: 18.h,
+                    color: textColor,
+                  ),
+                )
             ],
           ),
           const SizedBox(height: 6),
           IgnorePointer(
             child: QuillViewer(
               jsonString: content,
-              defaultTextStyle: TextStyle(color: textColor, overflow: TextOverflow.ellipsis, ),
+              defaultTextStyle: TextStyle(
+                color: textColor,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ),
           const SizedBox(height: 8),

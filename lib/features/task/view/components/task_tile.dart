@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:voice_task/utils/extensions/date_formatter.dart';
 import '../../../../shared/styles/color_style.dart';
 import '../../controllers/task_controller.dart';
 
@@ -8,8 +9,8 @@ Widget buildTaskTile({
   required String taskId,
   required String title,
   required String desc,
-  String? startDate,
-  String? dueDate,
+  DateTime? startDate,
+  DateTime? dueDate,
   required String status,
   required String priority,
   required bool isPinned,
@@ -35,11 +36,11 @@ Widget buildTaskTile({
 
   return Padding(
     padding: EdgeInsets.only(bottom: 12.h),
-    child: Dismissible(
-      key: Key(taskId),
-      background: ClipRRect(
-        borderRadius: BorderRadius.circular(12.r),
-        child: Container(
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(12.r),
+      child: Dismissible(
+        key: Key(taskId),
+        background: Container(
           color: Colors.green,
           padding: EdgeInsets.symmetric(horizontal: 20.w),
           alignment: Alignment.centerLeft,
@@ -56,10 +57,7 @@ Widget buildTaskTile({
             ],
           ),
         ),
-      ),
-      secondaryBackground: ClipRRect(
-        borderRadius: BorderRadius.circular(12.r),
-        child: Container(
+        secondaryBackground: Container(
           color: Colors.red,
           padding: EdgeInsets.symmetric(horizontal: 20.w),
           alignment: Alignment.centerRight,
@@ -76,77 +74,66 @@ Widget buildTaskTile({
             ],
           ),
         ),
-      ),
-      onDismissed: (direction) async {
-        if (direction == DismissDirection.endToStart) {
-          await TaskController.to
-              .deleteTask(taskId, title, attachmentUrl: attachmentUrl);
-        } else if (direction == DismissDirection.startToEnd) {
-          await controller.completeTask(taskId, title);
-        }
-      },
-      child: Card(
-        color: backgroundColor,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
-            ),
-        margin: EdgeInsets.zero,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12.r),
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18.sp,
-                          color: primaryTextColor,
+        onDismissed: (direction) {
+          controller.removeTask(taskId);
+
+          if (direction == DismissDirection.endToStart) {
+            controller.deleteTask(taskId, title, attachmentUrl: attachmentUrl);
+          } else if (direction == DismissDirection.startToEnd) {
+            controller.completeTask(taskId, title);
+          }
+        },
+        child: Container(
+          color: backgroundColor,
+          child: InkWell(
+            onTap: onTap,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18.sp,
+                            color: primaryTextColor,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    InkWell(
-                        onTap: () =>
-                            controller.togglePinStatus(taskId, isPinned),
-                        child: Icon(
-                            isPinned ? Icons.push_pin : Icons.push_pin_outlined,
-                            size: 18.sp))
-                  ],
-                ),
-                SizedBox(height: 10.h),
-                Row(
-                  children: [
-                    _buildMetaChip(
-                      icon: statusStyle['icon'],
-                      label: status,
-                      color: statusStyle['color'],
-                    ),
-                    SizedBox(width: 8.w),
-                    _buildMetaChip(
-                      icon: priorityStyle['icon'],
-                      label: priority,
-                      color: priorityStyle['color'],
-                      isPriority: true,
-                    ),
-                  ],
-                ),
-                SizedBox(height: 10.h),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: _buildDateDisplay(
-                      controller, startDate, dueDate, subtleIconAndDateColor),
-                ),
-              ],
+                    ],
+                  ),
+                  SizedBox(height: 10.h),
+                  Row(
+                    children: [
+                      _buildMetaChip(
+                        icon: statusStyle['icon'],
+                        label: status,
+                        color: statusStyle['color'],
+                      ),
+                      SizedBox(width: 8.w),
+                      _buildMetaChip(
+                        icon: priorityStyle['icon'],
+                        label: priority,
+                        color: priorityStyle['color'],
+                        isPriority: true,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 10.h),
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: _buildDateDisplay(
+                        startDate, dueDate, subtleIconAndDateColor),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -185,10 +172,10 @@ Widget _buildMetaChip({
   );
 }
 
-Widget _buildDateDisplay(TaskController controller, String? startDateIso,
-    String? dueDateIso, Color textColor) {
-  String displayStartDate = controller.formatDate(startDateIso);
-  String displayDueDate = controller.formatDate(dueDateIso);
+Widget _buildDateDisplay(
+    DateTime? startDate, DateTime? dueDate, Color textColor) {
+  final String displayStartDate = startDate?.toFormattedString() ?? '';
+  final String displayDueDate = dueDate?.toFormattedString() ?? '';
   String dateText;
 
   if (displayStartDate.isNotEmpty && displayDueDate.isNotEmpty) {
@@ -198,12 +185,7 @@ Widget _buildDateDisplay(TaskController controller, String? startDateIso,
   } else if (displayDueDate.isNotEmpty) {
     dateText = displayDueDate;
   } else {
-    return Text(
-      "No dates",
-      style: TextStyle(
-          fontSize: 12.sp, color: textColor, fontStyle: FontStyle.italic),
-      textAlign: TextAlign.end,
-    );
+    return const SizedBox.shrink();
   }
 
   return Row(

@@ -5,67 +5,61 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
-import 'package:hive_flutter/hive_flutter.dart';
-// import 'package:isar/isar.dart';
-// import 'package:path_provider/path_provider.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:voice_task/configs/routes/route.dart';
 import 'package:firebase_core/firebase_core.dart';
-// import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:voice_task/features/landing/models/user_model.dart';
 
 import 'configs/localizations/localization_string.dart';
-// import 'features/note/sub_features/add_note/models/isar_note.dart';
+import 'features/note/sub_features/add_note/models/note_model.dart';
 import 'firebase_options.dart';
 
 import 'configs/pages/page.dart';
 import 'configs/themes/theme.dart';
 import 'shared/bindings/global_binding.dart';
-// import 'utils/services/connectivity_service.dart';
 import 'utils/services/hive_service.dart';
 import 'utils/services/notification_service.dart';
 import 'utils/services/sentry_services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await NotificationService().init();
-  await NotificationService().requestPermissions();
-  await Hive.initFlutter();
-  // Get.put(ConnectivityService());
+
+  final appDocumentDir = await getApplicationDocumentsDirectory();
+  await Hive.initFlutter(appDocumentDir.path);
+  Hive.registerAdapter(NoteAdapter());
+  Hive.registerAdapter(UserModelAdapter());
+  await Hive.openBox("voice_task");
+  await Hive.openBox<Note>('notes');
+  await Hive.openBox<UserModel>('userProfile');
+
   await Get.putAsync(() async {
     final service = LocalStorageService();
     return await service.init();
   });
-  await Hive.openBox("voice_task");
+
+  await NotificationService().init();
+  await NotificationService().requestPermissions();
   await dotenv.load(fileName: ".env");
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  // final dir = await getApplicationDocumentsDirectory();
-  // final isar = await Isar.open(
-  //   [IsarNoteSchema],
-  //   directory: dir.path,
-  // );
-
-  // await FirebaseAppCheck.instance.activate(
-  //   webProvider: ReCaptchaV3Provider(
-  //     dotenv.env['RECAPTCHA_SITE_KEY']!,
-  //   ),
-  //   androidProvider:
-  //       kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
-  //   appleProvider: kDebugMode ? AppleProvider.debug : AppleProvider.appAttest,
-  // );
 
   await Supabase.initialize(
     url: dotenv.env['SUPABASE_URL']!,
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
+    authOptions: FlutterAuthClientOptions(
+      detectSessionInUri: false,
+    ),
   );
 
   await SentryFlutter.init(
     (options) {
-      options.dsn =
-          'https://265c9bdf1182f420c41a9e0571f8e0e1@o4508951422500864.ingest.us.sentry.io/4508951425056768';
+      options.dsn = dotenv.env['SENTRY_DSN']!;
       options.tracesSampleRate = 1.0;
       options.beforeSend = (event, hint) => filterSentryErrorBeforeSend(event);
     },

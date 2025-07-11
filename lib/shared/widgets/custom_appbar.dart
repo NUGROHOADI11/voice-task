@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget title;
   final IconData? titleIcon;
+  final Widget? bottom;
   final Widget? leading;
   final Widget? action;
   final Widget? action2;
@@ -15,6 +16,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     required this.title,
     this.titleIcon,
+    this.bottom,
     this.leading,
     this.action,
     this.action2,
@@ -43,6 +45,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             )
           : title,
       centerTitle: centerTitle ?? true,
+      bottom: bottom as PreferredSizeWidget?,
       actions: [
         if (action != null) action!,
         if (action2 != null) action2!,
@@ -51,5 +54,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize {
+    final bottomHeight = bottom is PreferredSizeWidget
+        ? (bottom as PreferredSizeWidget).preferredSize.height
+        : 0.0;
+    return Size.fromHeight(kToolbarHeight + bottomHeight);
+  }
 }

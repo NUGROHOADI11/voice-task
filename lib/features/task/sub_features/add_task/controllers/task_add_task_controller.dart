@@ -7,19 +7,24 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../../shared/controllers/global_controller.dart';
 import '../../../../../shared/widgets/custom_datepicker.dart';
 import '../../../../../utils/services/firestore_service.dart';
+import '../../../../offline/controllers/offline_controller.dart';
 import '../../../models/task_model.dart';
+import '../../../repositories/task_repository.dart';
 
 class TaskAddTaskController extends GetxController {
   static TaskAddTaskController get to => Get.find();
+
+  final isOnline = GlobalController.to.isConnected.value;
 
   final titleController = TextEditingController();
   final subtitleController = TextEditingController();
   final descriptionController = TextEditingController();
 
-  final RxString startDate = ''.obs;
-  final RxString dueDate = ''.obs;
+  final Rx<DateTime?> startDate = Rx<DateTime?>(null);
+  final Rx<DateTime?> dueDate = Rx<DateTime?>(null);
 
   final selectedStatus = TaskStatus.pending.obs;
   final selectedPriority = TaskPriority.medium.obs;
@@ -35,46 +40,26 @@ class TaskAddTaskController extends GetxController {
   Future<void> pickStartDate(BuildContext context) async {
     final pickedDate = await buildDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: startDate.value ?? DateTime.now(),
     );
 
     if (pickedDate != null) {
-      startDate.value = _formatDate(pickedDate);
-
-      if (dueDate.value.isNotEmpty) {
-        final due = DateTime.tryParse(dueDate.value);
-        if (due != null && pickedDate.isAfter(due)) {
-          dueDate.value = '';
-        }
+      startDate.value = pickedDate;
+      if (dueDate.value != null && pickedDate.isAfter(dueDate.value!)) {
+        dueDate.value = null;
       }
     }
   }
 
   Future<void> pickDueDate(BuildContext context) async {
-    DateTime initial = DateTime.now();
-
-    if (startDate.value.isNotEmpty) {
-      final start = DateTime.tryParse(startDate.value);
-      if (start != null && initial.isBefore(start)) {
-        initial = start;
-      }
-    }
-
     final pickedDate = await buildDatePicker(
       context: context,
-      initialDate: initial,
-      minDate: startDate.value.isNotEmpty
-          ? DateTime.tryParse(startDate.value)
-          : DateTime(2000),
+      initialDate: dueDate.value ?? startDate.value ?? DateTime.now(),
+      minDate: startDate.value,
     );
 
     if (pickedDate != null) {
-      final start = DateTime.tryParse(startDate.value);
-      if (start != null && pickedDate.isBefore(start)) {
-        Get.snackbar('Invalid Date', 'Due date cannot be before start date.');
-        return;
-      }
-      dueDate.value = _formatDate(pickedDate);
+      dueDate.value = pickedDate;
     }
   }
 
@@ -113,14 +98,12 @@ class TaskAddTaskController extends GetxController {
     uploadedAttachmentUrl = null;
   }
 
-  String _formatDate(DateTime date) => date.toIso8601String().split('T').first;
-
   void resetForm() {
     titleController.clear();
     subtitleController.clear();
     descriptionController.clear();
-    startDate.value = '';
-    dueDate.value = '';
+    startDate.value = null;
+    dueDate.value = null;
     selectedStatus.value = TaskStatus.pending;
     selectedPriority.value = TaskPriority.medium;
     isPin.value = false;
@@ -162,15 +145,22 @@ class TaskAddTaskController extends GetxController {
             : subtitleController.text.trim(),
         description: descriptionController.text.trim(),
         status: selectedStatus.value,
-        startDate: startDate.value.isEmpty ? null : startDate.value,
-        dueDate: dueDate.value.isEmpty ? null : dueDate.value,
+        startDate: startDate.value,
+        dueDate: dueDate.value,
         priority: selectedPriority.value,
         isPin: isPin.value,
         isHidden: isHidden.value,
         attachmentUrl: uploadedAttachmentUrl,
       );
 
-      await FirestoreService().addTask(task.toMap());
+      if (isOnline) {
+        await FirestoreService().addTask(task.toMap());
+        log('Submitting task to Firestore: ${task.toMap()}');
+      } else {
+        TaskRepository().addTask(task);
+        OfflineController.to.refreshTasks();
+        log('Saving task offline: ${task.toMap()}');
+      }
 
       resetForm();
       Get.back();

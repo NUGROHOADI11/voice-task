@@ -1,8 +1,9 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:voice_task/shared/styles/color_style.dart';
-
 import '../../../../configs/routes/route.dart';
 import '../../../../shared/widgets/custom_appbar.dart';
 import '../../controllers/task_controller.dart';
@@ -106,7 +107,6 @@ class TaskScreen extends StatelessWidget {
               itemBuilder: (context, index) {
                 final Task task = visibleTasks[index];
                 final String taskId = task.id ?? '';
-
                 Color tileColor = task.colorValue != null
                     ? Color(task.colorValue!)
                     : ColorStyle.grey;
@@ -127,6 +127,7 @@ class TaskScreen extends StatelessWidget {
                     backgroundColor: tileColor,
                     attachmentUrl: task.attachmentUrl,
                     onTap: () {
+                      log('Navigating to task details for $taskId');
                       Get.toNamed(
                         Routes.detailTaskRoute,
                         arguments: {'taskId': taskId},

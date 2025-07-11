@@ -1,3 +1,28 @@
+import 'dart:developer';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hive_ce/hive.dart';
+import 'package:intl/intl.dart';
+
+part 'task_model.g.dart';
+
+DateTime? _parseDate(dynamic date) {
+  if (date == null) return null;
+
+  if (date is Timestamp) return date.toDate();
+  
+  if (date is String) {
+    try {
+      
+      return DateFormat('MM/dd/yyyy').parse(date); 
+    } catch (e) {
+      log("Could not parse date: $date. Error: $e");
+      return null; 
+    }
+  }
+  return null;
+}
+
 enum TaskStatus {
   pending,
   inProgress,
@@ -26,20 +51,36 @@ enum TaskPriority {
   }
 }
 
+
+@HiveType(typeId: 2)
 class Task {
+  @HiveField(0)
   String? id;
+  @HiveField(1)
   final String title;
+  @HiveField(2)
   final String? subtitle;
+  @HiveField(3)
   final String description;
+  @HiveField(4)
   final TaskStatus status;
-  final String? startDate;
-  final String? dueDate;
+  @HiveField(5)
+  final DateTime? startDate;
+  @HiveField(6)
+  final DateTime? dueDate;
+  @HiveField(7)
   final TaskPriority priority;
+  @HiveField(8)
   final bool isPin;
+  @HiveField(9)
   final bool isHidden;
+  @HiveField(10)
   final int? colorValue;
+  @HiveField(11)
   final String? attachmentUrl;
+  @HiveField(12)
   final DateTime createdAt;
+  @HiveField(13)
   final DateTime? updatedAt;
 
   Task({
@@ -66,8 +107,8 @@ class Task {
       subtitle: map['subtitle'],
       description: map['description'] ?? '',
       status: TaskStatus.fromString(map['status']),
-      startDate: map['startDate'],
-      dueDate: map['dueDate'],
+      startDate: _parseDate(map['startDate']),
+      dueDate: _parseDate(map['dueDate']),
       priority: TaskPriority.fromString(map['priority']),
       isPin: map['isPin'] ?? false,
       isHidden: map['isHidden'] ?? false,

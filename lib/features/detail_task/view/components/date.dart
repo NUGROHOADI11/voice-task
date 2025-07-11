@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:voice_task/utils/extensions/date_formatter.dart';
 
 import '../../../../shared/styles/color_style.dart';
 import '../../../task/models/task_model.dart';
@@ -13,9 +14,7 @@ Widget buildDateRow(Task task) {
       Expanded(
         child: Obx(() => _buildDateDisplayBox(
               label: "Start Date".tr,
-              value: controller.startDate.value.isNotEmpty
-                  ? controller.startDate.value
-                  : "Not Set".tr,
+              value: controller.startDate.value?.toFormattedString() ?? "Not Set".tr,
               iconData: Icons.calendar_today_outlined,
               onTap: () => controller.pickStartDate(Get.context!),
             )),
@@ -24,9 +23,7 @@ Widget buildDateRow(Task task) {
       Expanded(
         child: Obx(() => _buildDateDisplayBox(
               label: "Due Date".tr,
-              value: controller.dueDate.value.isNotEmpty
-                  ? controller.dueDate.value
-                  : "Not Set".tr,
+              value: controller.dueDate.value?.toFormattedString() ?? "Not Set".tr,
               iconData: Icons.event_available_outlined,
               onTap: () => controller.pickDueDate(Get.context!),
             )),

@@ -14,7 +14,6 @@ class AddNoteScreen extends StatelessWidget {
   final controller = Get.put(NoteAddNoteController());
   final assetsConstant = NoteAssetsConstant();
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

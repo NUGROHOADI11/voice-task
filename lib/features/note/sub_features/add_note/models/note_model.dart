@@ -1,12 +1,27 @@
+import 'package:hive_ce/hive.dart';
+
+part 'note_model.g.dart';
+
+@HiveType(typeId: 0)
+
 class Note {
+  @HiveField(0)
   String? id;
+  @HiveField(1)
   final String title;
+  @HiveField(2)
   final String content;
+  @HiveField(3)
   final int? colorValue;
+  @HiveField(4)
   final bool isPin;
+  @HiveField(5)
   final bool? isHidden;
+  @HiveField(6)
   final DateTime createdAt;
+  @HiveField(7)
   final DateTime? updatedAt;
+  @HiveField(8)
   final List<String> tags;
 
   Note({

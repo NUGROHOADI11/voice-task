@@ -19,6 +19,8 @@ import 'package:voice_task/features/splash/view/ui/splash_screen.dart';
 
 import '../../features/home/view/ui/home_screen.dart';
 import '../../features/note/bindings/note_binding.dart';
+import '../../features/offline/bindings/offline_binding.dart';
+import '../../features/offline/view/ui/offline_screen.dart';
 import '../../features/task/bindings/task_binding.dart';
 import '../../features/task/sub_features/add_task/view/ui/add_task_screen.dart';
 
@@ -64,5 +66,9 @@ abstract class Pages {
         name: Routes.hiddenRoute,
         page: () => HiddenScreen(),
         binding: HiddenBinding()),
+    GetPage(
+        name: Routes.offlineRoute,
+        page: () => OfflineScreen(),
+        binding: OfflineBinding()),
   ];
 }

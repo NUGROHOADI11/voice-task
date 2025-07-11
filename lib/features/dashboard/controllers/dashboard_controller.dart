@@ -12,13 +12,10 @@ class DashboardController extends GetxController {
   final isSearching = false.obs;
   final selectedDateIndex = RxnInt();
   final searchController = TextEditingController();
-
   final selectedDate = Rxn<DateTime>();
-
   final _allTasks = <Task>[].obs;
   final activeTasks = <Task>[].obs;
-
-  final isLoading = false.obs;
+  final isLoading = true.obs;
   final errorMessage = ''.obs;
 
   StreamSubscription? _taskSubscription;
@@ -27,7 +24,6 @@ class DashboardController extends GetxController {
   void onInit() {
     super.onInit();
     _streamTasks();
-
     ever(selectedDate, (_) => _filterTasks());
   }
 
@@ -42,6 +38,7 @@ class DashboardController extends GetxController {
     isSearching.value = !isSearching.value;
     if (!isSearching.value) {
       searchController.clear();
+      _filterTasks();
     }
   }
 
@@ -60,40 +57,46 @@ class DashboardController extends GetxController {
   }
 
   void _streamTasks() {
-    isLoading(true);
+    // isLoading(true);
     _taskSubscription = FirestoreService().getDataTask().listen((snapshot) {
       final tasks = snapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
+
         return Task.fromMap(data, doc.id);
       }).toList();
 
       _allTasks.value = tasks;
       _filterTasks();
       _setNotification();
-      isLoading(false);
+      isLoading.value = false;
     }, onError: (error) {
       errorMessage.value = "Failed to load tasks: $error";
       log("Failed to load tasks: $error");
-      isLoading(false);
+      isLoading.value = false;
     });
   }
 
   void _filterTasks() {
     final date = selectedDate.value;
     if (date == null) {
-      activeTasks.clear();
+      activeTasks.assignAll(_allTasks);
       return;
     }
 
     final filtered = _allTasks.where((task) {
-      final start = DateTime.tryParse(task.startDate ?? '');
-      final end = DateTime.tryParse(task.dueDate ?? '');
+      final start = task.startDate;
+      final end = task.dueDate;
 
       if (start == null || end == null) return false;
 
-      return date.isAtSameMomentAs(start) ||
-          date.isAtSameMomentAs(end) ||
-          (date.isAfter(start) && date.isBefore(end));
+      final normalizedDate = DateTime(date.year, date.month, date.day);
+      final normalizedStart = DateTime(start.year, start.month, start.day);
+      final normalizedEnd = DateTime(end.year, end.month, end.day);
+
+      return normalizedDate.isAtSameMomentAs(normalizedStart) ||
+          normalizedDate.isAtSameMomentAs(normalizedEnd) ||
+          (normalizedDate.isAfter(normalizedStart) &&
+              normalizedDate.isBefore(normalizedEnd));
     }).toList();
 
     activeTasks.value = filtered;
@@ -104,32 +107,27 @@ class DashboardController extends GetxController {
     final tomorrow = DateTime(now.year, now.month, now.day + 1);
 
     final tasksForTomorrow = _allTasks.where((task) {
-      final start = DateTime.tryParse(task.startDate ?? '');
-      final end = DateTime.tryParse(task.dueDate ?? '');
+      final start = task.startDate;
+      if (start == null) return false;
 
-      if (start == null || end == null) return false;
-
-      return tomorrow.isAtSameMomentAs(start) ||
-          tomorrow.isAtSameMomentAs(end) ||
-          (tomorrow.isAfter(start) && tomorrow.isBefore(end));
+      return start.year == tomorrow.year &&
+          start.month == tomorrow.month &&
+          start.day == tomorrow.day;
     }).toList();
 
-    final notificationService = NotificationService();
-
-    final String title = 'Upcoming Tasks Reminder'.tr;
-    final String body =
-        'You have ${tasksForTomorrow.length} task(s) scheduled for tomorrow.'
-            .tr;
-
     if (tasksForTomorrow.isNotEmpty) {
+      final notificationService = NotificationService();
+      final String title = 'Upcoming Tasks Reminder'.tr;
+      final String body =
+          'You have ${tasksForTomorrow.length} task(s) scheduled for tomorrow.'
+              .tr;
+
       notificationService.scheduleNotification(
         id: 99,
         title: title,
         body: body,
-        scheduledTime: tomorrow,
+        scheduledTime: DateTime(tomorrow.year, tomorrow.month, tomorrow.day, 9),
       );
-    } else {
-      notificationService.cancelNotification(99);
     }
   }
 }

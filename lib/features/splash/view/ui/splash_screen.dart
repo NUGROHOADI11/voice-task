@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../../configs/routes/route.dart';
 import '../../../../constants/core/assets/image_constant.dart';
+import '../../../../shared/controllers/global_controller.dart';
 import '../../../landing/controllers/landing_controller.dart';
 
 class SplashScreen extends StatelessWidget {
@@ -14,8 +15,11 @@ class SplashScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     Future.delayed(const Duration(seconds: 2), () async {
       final user = FirebaseAuth.instance.currentUser;
+      if (GlobalController.to.isConnected.value == false) {
+        Get.offAllNamed(Routes.offlineRoute);
+        return;
+      } 
       Get.offAllNamed(user != null ? Routes.homeRoute : Routes.onBoardRoute);
-      
     });
 
     return Scaffold(

@@ -1,14 +1,18 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../utils/services/firestore_service.dart';
+import '../../../shared/controllers/global_controller.dart';
+import '../../offline/controllers/offline_controller.dart';
 import '../models/task_model.dart';
+import '../repositories/task_repository.dart';
 
 class TaskController extends GetxController {
   static TaskController get to => Get.put(TaskController());
-
+  final isOnline = GlobalController.to.isConnected.value;
   final FirestoreService _firestoreService = FirestoreService();
 
   var allTasks = <Task>[].obs;
@@ -23,6 +27,10 @@ class TaskController extends GetxController {
     allTasks.bindStream(_getTasksStream());
     ever(allTasks, (_) => _performSearch());
     ever(searchQuery, (_) => _performSearch());
+  }
+
+  void removeTask(String taskId) {
+    allTasks.removeWhere((task) => task.id == taskId);
   }
 
   Stream<List<Task>> _getTasksStream() {
@@ -70,10 +78,20 @@ class TaskController extends GetxController {
 
   Future<void> completeTask(String taskId, String title) async {
     try {
-      await _firestoreService.updateTask(taskId, {
-        'status': TaskStatus.completed.name,
-        'updatedAt': DateTime.now().toIso8601String(),
-      });
+      if (isOnline) {
+        log('Completing task in Firestore: $taskId');
+        await _firestoreService.updateTask(taskId, {
+          'status': 'completed',
+          'updatedAt': DateTime.now().toIso8601String(),
+        });
+      } else {
+        TaskRepository().updateTask(taskId, {
+          'status': 'completed',
+          'updatedAt': DateTime.now().toIso8601String(),
+        } as Task);
+        OfflineController.to.refreshTasks();
+        log('Completing task in local storage: $taskId');
+      }
       Get.snackbar(
         'Task Completed'.tr,
         '"$title" marked as complete.'.tr,
@@ -96,8 +114,6 @@ class TaskController extends GetxController {
         'isHidden': hide,
         'updatedAt': DateTime.now().toIso8601String(),
       });
-      allTasks.bindStream(_getTasksStream());
-      filteredTasks.bindStream(_getTasksStream());
 
       Get.snackbar(
         hide ? 'Task Hidden'.tr : 'Task Unhidden'.tr,
@@ -119,47 +135,25 @@ class TaskController extends GetxController {
 
   Future<void> deleteTask(String taskId, String title,
       {String? attachmentUrl}) async {
-    final confirm = await Get.dialog<bool>(
-      AlertDialog(
-        title: const Text("Delete Task"),
-        content: Text(
-            'Are you sure you want to delete "$title"? This action cannot be undone.'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              allTasks.bindStream(_getTasksStream());
-              filteredTasks.bindStream(_getTasksStream());
-              Get.back(result: false);
-            },
-            child: const Text("Cancel", style: TextStyle(color: Colors.black)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () => Get.back(result: true),
-            child: const Text("Delete", style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm != true) return;
-
     try {
-      if (attachmentUrl != null) {
-        final bucketName = dotenv.env['SUPABASE_BUCKET_NAME']!;
-        final storageClient = Supabase.instance.client.storage.from(bucketName);
+      if (isOnline) {
+        if (attachmentUrl != null && attachmentUrl.isNotEmpty) {
+          final bucketName = dotenv.env['SUPABASE_BUCKET_NAME']!;
+          final storageClient =
+              Supabase.instance.client.storage.from(bucketName);
+          final publicPath = attachmentUrl.split('/').last;
+          final folderPath = 'attachments_task/$publicPath';
+          await storageClient.remove([folderPath]);
+        }
 
-        final publicPath = attachmentUrl.split('/').last;
-        final folderPath = 'attachments_task/$publicPath';
-
-        await storageClient.remove([folderPath]);
+        await _firestoreService.deleteTask(taskId);
+        log('Deleting task in Firestore: $taskId');
+      } else {
+        log('Deleting task in local storage: $taskId');
+        TaskRepository().deleteTask(taskId);
+        OfflineController.to.refreshTasks();
       }
 
-      await _firestoreService.deleteTask(taskId);
-
-      allTasks.bindStream(_getTasksStream());
-      filteredTasks.bindStream(_getTasksStream());
-      Get.back();
       Get.snackbar(
         'Task Deleted'.tr,
         '"$title" was removed.'.tr,
@@ -222,15 +216,5 @@ class TaskController extends GetxController {
       };
     }
     return {'icon': Icons.label_important_outline, 'color': defaultColor};
-  }
-
-  String formatDate(String? isoDateString) {
-    if (isoDateString == null || isoDateString.isEmpty) return "";
-    try {
-      DateTime date = DateTime.parse(isoDateString);
-      return DateFormat('dd.MM.yyyy', 'en_US').format(date);
-    } catch (e) {
-      return isoDateString;
-    }
   }
 }

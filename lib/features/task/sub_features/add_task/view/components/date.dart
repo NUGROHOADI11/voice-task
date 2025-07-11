@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
+import 'package:voice_task/utils/extensions/date_formatter.dart';
 import '../../../../../../shared/styles/color_style.dart';
 import '../../controllers/task_add_task_controller.dart';
 
@@ -8,17 +8,19 @@ Widget buildDateRow(BuildContext context) {
   return Row(
     children: [
       Expanded(
-          child: _buildDateBox("Start Date", TaskAddTaskController.to.startDate,
+          child: _buildDateBox(
+              "Start Date".tr,
+              TaskAddTaskController.to.startDate,
               () => TaskAddTaskController.to.pickStartDate(context))),
       const SizedBox(width: 10),
       Expanded(
-          child: _buildDateBox("Due Date", TaskAddTaskController.to.dueDate,
+          child: _buildDateBox("Due Date".tr, TaskAddTaskController.to.dueDate,
               () => TaskAddTaskController.to.pickDueDate(context))),
     ],
   );
 }
 
-Widget _buildDateBox(String label, RxString value, VoidCallback onTap) {
+Widget _buildDateBox(String label, Rx<DateTime?> value, VoidCallback onTap) {
   return Obx(() => GestureDetector(
         onTap: onTap,
         child: Container(
@@ -38,7 +40,7 @@ Widget _buildDateBox(String label, RxString value, VoidCallback onTap) {
                       color: ColorStyle.danger),
                   const SizedBox(width: 8),
                   Text(
-                    value.value.isEmpty ? 'Select date' : value.value,
+                    value.value?.toFormattedString() ?? 'Select date'.tr,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ],

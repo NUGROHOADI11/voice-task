@@ -7,6 +7,7 @@ import '../../../../configs/routes/route.dart';
 import '../../../../constants/core/assets/image_constant.dart';
 import '../../../../shared/widgets/custom_appbar.dart';
 import '../../../task/controllers/task_controller.dart';
+import '../../../task/view/components/task_tile.dart';
 
 class HiddenScreen extends StatelessWidget {
   HiddenScreen({super.key});
@@ -57,22 +58,24 @@ class HiddenScreen extends StatelessWidget {
           itemCount: hiddenTasks.length,
           itemBuilder: (context, index) {
             final task = hiddenTasks[index];
-            return Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: ListTile(
-                title: Text(task.title),
-                subtitle: Text(task.description),
-                trailing: IconButton(
-                  icon: const Icon(Icons.unarchive),
-                  onPressed: () {
-                    taskController.hideTask(task.id!, task.title, hide: false);
-                  },
-                ),
+            String taskId = task.id!;
+            final tileColor =
+                task.colorValue != null ? Color(task.colorValue!) : Colors.grey;
+            return buildTaskTile(
+              taskId: taskId,
+              title: task.title,
+              desc: task.description,
+              startDate: task.startDate,
+              dueDate: task.dueDate,
+              status: task.status.name,
+              priority: task.priority.name,
+              isPinned: task.isPin,
+              backgroundColor: tileColor,
+              attachmentUrl: task.attachmentUrl,
               onTap: () {
                 Get.toNamed(Routes.detailTaskRoute,
-                    arguments: {'taskId': task.id});
+                    arguments: {'taskId': taskId});
               },
-              ),
             );
           },
         );
