@@ -26,13 +26,15 @@ class NoteAdapter extends TypeAdapter<Note> {
       createdAt: fields[6] as DateTime?,
       updatedAt: fields[7] as DateTime?,
       tags: fields[8] == null ? const [] : (fields[8] as List).cast<String>(),
+      isSynced: fields[9] == null ? false : fields[9] as bool,
+      isDeleted: fields[10] == null ? false : fields[10] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, Note obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -50,7 +52,11 @@ class NoteAdapter extends TypeAdapter<Note> {
       ..writeByte(7)
       ..write(obj.updatedAt)
       ..writeByte(8)
-      ..write(obj.tags);
+      ..write(obj.tags)
+      ..writeByte(9)
+      ..write(obj.isSynced)
+      ..writeByte(10)
+      ..write(obj.isDeleted);
   }
 
   @override

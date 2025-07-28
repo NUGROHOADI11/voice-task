@@ -1,33 +1,23 @@
-import 'dart:developer';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive_ce/hive.dart';
-import 'package:intl/intl.dart';
 
 part 'task_model.g.dart';
 
-DateTime? _parseDate(dynamic date) {
-  if (date == null) return null;
-
-  if (date is Timestamp) return date.toDate();
-  
-  if (date is String) {
-    try {
-      
-      return DateFormat('MM/dd/yyyy').parse(date); 
-    } catch (e) {
-      log("Could not parse date: $date. Error: $e");
-      return null; 
-    }
-  }
-  return null;
-}
-
+@HiveType(typeId: 3)
 enum TaskStatus {
+  @HiveField(0)
   pending,
+
+  @HiveField(1)
   inProgress,
+
+  @HiveField(2)
   completed,
+
+  @HiveField(3)
   onHold,
+
+  @HiveField(4)
   outDate;
 
   static TaskStatus fromString(String? statusString) {
@@ -38,9 +28,15 @@ enum TaskStatus {
   }
 }
 
+@HiveType(typeId: 4)
 enum TaskPriority {
+  @HiveField(0)
   low,
+
+  @HiveField(1)
   medium,
+
+  @HiveField(2)
   high;
 
   static TaskPriority fromString(String? priorityString) {
@@ -50,7 +46,6 @@ enum TaskPriority {
     );
   }
 }
-
 
 @HiveType(typeId: 2)
 class Task {
@@ -82,6 +77,10 @@ class Task {
   final DateTime createdAt;
   @HiveField(13)
   final DateTime? updatedAt;
+  @HiveField(14)
+  bool isSynced = false;
+  @HiveField(15)
+  bool isDeleted = false;
 
   Task({
     this.id,
@@ -96,9 +95,18 @@ class Task {
     this.isHidden = false,
     this.colorValue,
     this.attachmentUrl,
+    this.isSynced = false,
+    this.isDeleted = false,
     DateTime? createdAt,
     this.updatedAt,
   }) : createdAt = createdAt ?? DateTime.now();
+
+  static DateTime? _parseDate(dynamic date) {
+    if (date == null) return null;
+    if (date is Timestamp) return date.toDate();
+    if (date is String) return DateTime.tryParse(date);
+    return null;
+  }
 
   factory Task.fromMap(Map<String, dynamic> map, String documentId) {
     return Task(
@@ -114,11 +122,10 @@ class Task {
       isHidden: map['isHidden'] ?? false,
       colorValue: map['colorValue'],
       attachmentUrl: map['attachmentUrl'],
-      createdAt: map['createdAt'] != null
-          ? DateTime.parse(map['createdAt'])
-          : DateTime.now(),
-      updatedAt:
-          map['updatedAt'] != null ? DateTime.parse(map['updatedAt']) : null,
+      isSynced: map['isSynced'] ?? false,
+      isDeleted: map['isDeleted'] ?? false,
+      createdAt: _parseDate(map['createdAt']) ?? DateTime.now(),
+      updatedAt: _parseDate(map['updatedAt']),
     );
   }
 
@@ -129,13 +136,15 @@ class Task {
       'subtitle': subtitle,
       'description': description,
       'status': status.name,
-      'startDate': startDate,
-      'dueDate': dueDate,
+      'startDate': startDate?.toIso8601String(),
+      'dueDate': dueDate?.toIso8601String(),
       'priority': priority.name,
       'isPin': isPin,
       'isHidden': isHidden,
       'colorValue': colorValue,
       'attachmentUrl': attachmentUrl,
+      'isSynced': isSynced,
+      'isDeleted': isDeleted,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
     };
@@ -170,6 +179,12 @@ class Task {
       isHidden: updateData.containsKey('isHidden')
           ? updateData['isHidden']
           : originalTask.isHidden,
+      isSynced: updateData.containsKey('isSynced')
+          ? updateData['isSynced'] as bool
+          : originalTask.isSynced,
+      isDeleted: updateData.containsKey('isDeleted')
+          ? updateData['isDeleted'] as bool
+          : originalTask.isDeleted,
       colorValue: updateData.containsKey('colorValue')
           ? updateData['colorValue']
           : originalTask.colorValue,

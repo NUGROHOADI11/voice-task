@@ -11,6 +11,8 @@ extension HiveRegistrar on HiveInterface {
   void registerAdapters() {
     registerAdapter(NoteAdapter());
     registerAdapter(TaskAdapter());
+    registerAdapter(TaskPriorityAdapter());
+    registerAdapter(TaskStatusAdapter());
     registerAdapter(UserModelAdapter());
   }
 }

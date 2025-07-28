@@ -1,63 +1,38 @@
+import 'dart:developer';
+import 'dart:async';
+
 import 'package:get/get.dart';
-import '../../../utils/services/firestore_service.dart';
+import '../repositories/note_repository.dart';
 import '../sub_features/add_note/models/note_model.dart';
 
 class NoteController extends GetxController {
-  static NoteController get to => Get.put(NoteController());
-
-  final FirestoreService _firestoreService = FirestoreService();
+  static NoteController get to => Get.find();
+  final noteRepo = NoteRepository();
 
   var notes = <Note>[].obs;
-
-  var filteredNotes = <Note>[].obs;
-
   var isLoading = true.obs;
-
   var isSearching = false.obs;
   var searchQuery = ''.obs;
+  late StreamSubscription _noteSubscription;
 
   @override
   void onInit() {
     super.onInit();
-
-    notes.bindStream(_getNotesStream());
-
-    ever(notes, (_) => _filterNotes());
-    ever(searchQuery, (_) => _filterNotes());
-  }
-
-  Stream<List<Note>> _getNotesStream() {
-    isLoading.value = true;
-    return _firestoreService.getDataNotes().map((snapshot) {
-      try {
-        List<Note> notes = snapshot.docs.map((doc) {
-          return Note.fromMap(doc.data() as Map<String, dynamic>, doc.id);
-        }).toList();
-        isLoading.value = false;
-        return notes;
-      } catch (e) {
-        isLoading.value = false;
-        Get.snackbar("Error", "Failed to parse notes: ${e.toString()}",
-            snackPosition: SnackPosition.BOTTOM);
-        return <Note>[];
-      }
-    }).handleError((error) {
-      isLoading.value = false;
-      Get.snackbar("Error", "Failed to fetch notes: ${error.toString()}",
-          snackPosition: SnackPosition.BOTTOM);
+    fetchNotes();
+    _noteSubscription = noteRepo.watchNotes().listen((event) {
+      log("Notes updated: $event");
+      fetchNotes();
     });
   }
 
-  void _filterNotes() {
-    final query = searchQuery.value.toLowerCase();
-    if (query.isEmpty) {
-      filteredNotes.assignAll(notes);
-    } else {
-      filteredNotes.assignAll(notes.where((note) {
-        final titleMatch = note.title.toLowerCase().contains(query);
-        final contentMatch = note.content.toLowerCase().contains(query);
-        return titleMatch || contentMatch;
-      }).toList());
+  void fetchNotes() {
+    try {
+      isLoading.value = true;
+      notes.value = noteRepo.getAllNotes();
+    } catch (e) {
+      log("Error fetching offline data: $e");
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -69,9 +44,27 @@ class NoteController extends GetxController {
   }
 
   void togglePin(id, Note note) {
-    _firestoreService.updateNote(id, {
-      'isPin': !note.isPin,
-      'updatedAt': DateTime.now().toIso8601String(),
-    });
+    try {
+      noteRepo.updateNote(
+          id,
+          Note(
+            id: id,
+            title: note.title,
+            content: note.content,
+            isPin: !note.isPin,
+            updatedAt: DateTime.now(),
+          ));
+      fetchNotes();
+    } catch (e) {
+      log("Error toggling pin: $e");
+      Get.snackbar("Error", "Failed to toggle pin: $e",
+          snackPosition: SnackPosition.BOTTOM);
+    }
+  }
+
+  @override
+  void onClose() {
+    _noteSubscription.cancel();
+    super.onClose();
   }
 }

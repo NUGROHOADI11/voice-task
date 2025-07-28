@@ -39,14 +39,6 @@ class OfflineController extends GetxController {
     }
   }
 
-  void refreshNotes() {
-    notes.value = NoteRepository().getAllNotes();
-  }
-
-  void refreshTasks() {
-    tasks.value = TaskRepository().getAllTasks();
-  }
-
   void refreshConnection() {
     isLoading.value = true;
     try {

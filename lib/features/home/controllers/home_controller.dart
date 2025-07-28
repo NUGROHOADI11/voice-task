@@ -3,9 +3,12 @@ import 'package:firebase_ai/firebase_ai.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'dart:async';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:speech_to_text/speech_recognition_result.dart';
+
+import '../../../shared/controllers/global_controller.dart';
 
 class HomeController extends GetxController {
   static HomeController get to => Get.find();
@@ -182,7 +185,7 @@ class HomeController extends GetxController {
         //   changePage(1);
         // } else {
         // }
-          Get.toNamed(routeName); 
+        Get.toNamed(routeName);
       }
       sttStatus.value = 'Navigating to: $routeName';
     } catch (e) {
@@ -194,10 +197,23 @@ class HomeController extends GetxController {
     }
   }
 
+  final RefreshController refreshController =
+      RefreshController(initialRefresh: false);
+
+  Future<void> onRefresh() async {
+    GlobalController.to.checkConnection();
+    refreshController.refreshCompleted();
+  }
+
+  Future<void> onLoading() async {
+    refreshController.loadComplete();
+  }
+
   @override
   void onClose() {
     _inactivityTimer?.cancel();
     _speech.stop();
+    refreshController.dispose();
     super.onClose();
   }
 }

@@ -72,8 +72,8 @@ class LandingController extends GetxController {
             await _firestoreService.getUserDetail(userCredential.user!.uid);
 
         if (userDoc.exists) {
-          NoteRepository().deleteAllNotes();
-          TaskRepository().deleteAllTasks();
+          TaskRepository().syncTasksFromFirebase();
+          NoteRepository().syncNotesFromFirebase();
           final data = userDoc.data() as Map<String, dynamic>;
           final userModel = UserModel.fromMap(data, userDoc.id);
           await landingRepository.saveUserProfile(userModel);
@@ -100,6 +100,9 @@ class LandingController extends GetxController {
       await auth.signOut();
       await signIn.signOut();
       await signIn.disconnect();
+
+      TaskRepository().deleteAllTasks();
+      NoteRepository().deleteAllNotes();
       await landingRepository.deleteUserProfile();
       Get.offAllNamed(Routes.landingRoute);
     } catch (e) {
@@ -193,8 +196,11 @@ class LandingController extends GetxController {
           );
           await _firestoreService.addUser(userModel.toMap());
         }
-        NoteRepository().deleteAllNotes();
+        // Clear local data before syncing from Firebase to prevent duplicates
         TaskRepository().deleteAllTasks();
+        NoteRepository().deleteAllNotes();
+        NoteRepository().syncNotesFromFirebase();
+        TaskRepository().syncTasksFromFirebase();
         await landingRepository.saveUserProfile(userModel);
       }
 

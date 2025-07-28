@@ -50,9 +50,7 @@ class DetailTaskScreen extends StatelessWidget {
             return IconButton(
               icon: const Icon(Icons.delete_outline, color: ColorStyle.black),
               onPressed: () {
-                TaskController.to.deleteTask(
-                    taskId, controller.task.value!.title,
-                    attachmentUrl: controller.task.value!.attachmentUrl);
+                TaskController.to.deleteTask(taskId);
               },
             );
           }),

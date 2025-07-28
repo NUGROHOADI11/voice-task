@@ -2,20 +2,15 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../shared/controllers/global_controller.dart';
 import '../../../shared/styles/color_style.dart';
 import '../../../shared/widgets/custom_datepicker.dart';
-import '../../../utils/services/firestore_service.dart';
-import '../../offline/controllers/offline_controller.dart';
+import '../../task/controllers/task_controller.dart';
 import '../../task/models/task_model.dart';
 import '../../task/repositories/task_repository.dart';
 
 class DetailTaskController extends GetxController {
   static DetailTaskController get to => Get.put(DetailTaskController());
-
-  final isOnline = GlobalController.to.isConnected.value;
-
+  final taskRepo = TaskRepository();
   final titleController = TextEditingController();
   final subtitleController = TextEditingController();
   final descriptionController = TextEditingController();
@@ -29,7 +24,6 @@ class DetailTaskController extends GetxController {
   final priority = TaskPriority.medium.obs;
   final Rxn<Task> task = Rxn<Task>();
 
-  final FirestoreService _firestoreService = FirestoreService();
   late String taskId;
 
   @override
@@ -44,37 +38,9 @@ class DetailTaskController extends GetxController {
     try {
       isLoading.value = true;
 
-      if (isOnline) {
-        log('Fetching task details from Firestore');
-        final DocumentSnapshot docSnapshot =
-            await _firestoreService.getTaskDocument(taskId);
-        if (docSnapshot.exists && docSnapshot.data() != null) {
-          task.value = Task.fromMap(
-              docSnapshot.data() as Map<String, dynamic>, docSnapshot.id);
-        } else {
-          Get.snackbar(
-            "Error",
-            "Task not found.",
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.orange,
-            colorText: Colors.white,
-          );
-          task.value = null;
-        }
-      } else {
-        final localTask = TaskRepository().getTaskById(taskId);
-        if (localTask != null) {
-          task.value = localTask;
-        } else {
-          Get.snackbar(
-            "Error",
-            "Task not found in local storage.",
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.orange,
-            colorText: Colors.white,
-          );
-          log('Fetching task details from local storage');
-        }
+      final localTask = taskRepo.getTaskById(taskId);
+      if (localTask != null) {
+        task.value = localTask;
       }
 
       titleController.text = task.value?.title ?? '';
@@ -158,28 +124,23 @@ class DetailTaskController extends GetxController {
     try {
       isLoading.value = true;
 
-      final updateData = Task(
-        title: titleController.text.trim(),
-
-        subtitle: subtitleController.text.trim().isEmpty
+      final updateData = {
+        'title': titleController.text.trim(),
+        'subtitle': subtitleController.text.trim().isEmpty
             ? null
             : subtitleController.text.trim(),
-        description: descriptionController.text.trim(),
-        status: status.value,
-        colorValue: selectedColor.value ?? task.value!.colorValue,
-        priority: priority.value,
-        startDate: startDate.value,
-        dueDate: dueDate.value,
-        updatedAt: DateTime.now(),
-      );
-      if (isOnline) {
-        log('Updating task in Firestore: $updateData');
-        await _firestoreService.updateTask(taskId, updateData.toMap());
-      } else {
-        await TaskRepository().updateTask(taskId, updateData );
-        OfflineController.to.refreshTasks();
-        log('Updating task in local storage: $updateData');
-      }
+        'description': descriptionController.text.trim(),
+        'status': status.value.name,
+        'colorValue': selectedColor.value,
+        'priority': priority.value.name,
+        'startDate': startDate.value,
+        'dueDate': dueDate.value,
+      };
+
+      await taskRepo.updateTask(taskId, updateData);
+      TaskController.to.fetchTasks();
+      log('Updating task in local storage: $updateData');
+
       Get.back();
       Get.snackbar(
         "Success",

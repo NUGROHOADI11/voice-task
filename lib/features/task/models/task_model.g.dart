@@ -30,6 +30,8 @@ class TaskAdapter extends TypeAdapter<Task> {
       isHidden: fields[9] == null ? false : fields[9] as bool,
       colorValue: (fields[10] as num?)?.toInt(),
       attachmentUrl: fields[11] as String?,
+      isSynced: fields[14] == null ? false : fields[14] as bool,
+      isDeleted: fields[15] == null ? false : fields[15] as bool,
       createdAt: fields[12] as DateTime?,
       updatedAt: fields[13] as DateTime?,
     );
@@ -38,7 +40,7 @@ class TaskAdapter extends TypeAdapter<Task> {
   @override
   void write(BinaryWriter writer, Task obj) {
     writer
-      ..writeByte(14)
+      ..writeByte(16)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -66,7 +68,11 @@ class TaskAdapter extends TypeAdapter<Task> {
       ..writeByte(12)
       ..write(obj.createdAt)
       ..writeByte(13)
-      ..write(obj.updatedAt);
+      ..write(obj.updatedAt)
+      ..writeByte(14)
+      ..write(obj.isSynced)
+      ..writeByte(15)
+      ..write(obj.isDeleted);
   }
 
   @override
@@ -76,6 +82,96 @@ class TaskAdapter extends TypeAdapter<Task> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is TaskAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class TaskStatusAdapter extends TypeAdapter<TaskStatus> {
+  @override
+  final int typeId = 3;
+
+  @override
+  TaskStatus read(BinaryReader reader) {
+    switch (reader.readByte()) {
+      case 0:
+        return TaskStatus.pending;
+      case 1:
+        return TaskStatus.inProgress;
+      case 2:
+        return TaskStatus.completed;
+      case 3:
+        return TaskStatus.onHold;
+      case 4:
+        return TaskStatus.outDate;
+      default:
+        return TaskStatus.pending;
+    }
+  }
+
+  @override
+  void write(BinaryWriter writer, TaskStatus obj) {
+    switch (obj) {
+      case TaskStatus.pending:
+        writer.writeByte(0);
+      case TaskStatus.inProgress:
+        writer.writeByte(1);
+      case TaskStatus.completed:
+        writer.writeByte(2);
+      case TaskStatus.onHold:
+        writer.writeByte(3);
+      case TaskStatus.outDate:
+        writer.writeByte(4);
+    }
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TaskStatusAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class TaskPriorityAdapter extends TypeAdapter<TaskPriority> {
+  @override
+  final int typeId = 4;
+
+  @override
+  TaskPriority read(BinaryReader reader) {
+    switch (reader.readByte()) {
+      case 0:
+        return TaskPriority.low;
+      case 1:
+        return TaskPriority.medium;
+      case 2:
+        return TaskPriority.high;
+      default:
+        return TaskPriority.low;
+    }
+  }
+
+  @override
+  void write(BinaryWriter writer, TaskPriority obj) {
+    switch (obj) {
+      case TaskPriority.low:
+        writer.writeByte(0);
+      case TaskPriority.medium:
+        writer.writeByte(1);
+      case TaskPriority.high:
+        writer.writeByte(2);
+    }
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TaskPriorityAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

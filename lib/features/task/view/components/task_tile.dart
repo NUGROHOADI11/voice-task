@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
 import 'package:voice_task/utils/extensions/date_formatter.dart';
 import '../../../../shared/styles/color_style.dart';
 import '../../controllers/task_controller.dart';
+import '../../models/task_model.dart';
 
 Widget buildTaskTile({
   required String taskId,
+  required Task task,
   required String title,
   required String desc,
   DateTime? startDate,
@@ -14,8 +17,12 @@ Widget buildTaskTile({
   required String status,
   required String priority,
   required bool isPinned,
+  bool? showPin = true,
   required Color backgroundColor,
   required VoidCallback onTap,
+  required VoidCallback onComplete,
+  required VoidCallback onDelete,
+  bool? onHold,
   String? attachmentUrl,
 }) {
   final TaskController controller = TaskController.to;
@@ -38,54 +45,40 @@ Widget buildTaskTile({
     padding: EdgeInsets.only(bottom: 12.h),
     child: ClipRRect(
       borderRadius: BorderRadius.circular(12.r),
-      child: Dismissible(
-        key: Key(taskId),
-        background: Container(
-          color: Colors.green,
-          padding: EdgeInsets.symmetric(horizontal: 20.w),
-          alignment: Alignment.centerLeft,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Icon(Icons.check, color: Colors.white, size: 24.sp),
-              SizedBox(width: 8.w),
-              Text('Complete'.tr,
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.bold)),
-            ],
-          ),
+      child: Slidable(
+        key: ValueKey(taskId),
+        startActionPane: ActionPane(
+          motion: const StretchMotion(),
+          dismissible: DismissiblePane(onDismissed: onComplete),
+          children: [
+            SlidableAction(
+              onPressed: (context) => onComplete(),
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              icon: Icons.check,
+              label: 'Complete'.tr,
+            ),
+          ],
         ),
-        secondaryBackground: Container(
-          color: Colors.red,
-          padding: EdgeInsets.symmetric(horizontal: 20.w),
-          alignment: Alignment.centerRight,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Text('Delete'.tr,
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.bold)),
-              SizedBox(width: 8.w),
-              Icon(Icons.delete, color: Colors.white, size: 24.sp),
-            ],
-          ),
+        endActionPane: ActionPane(
+          motion: const StretchMotion(),
+          dismissible: DismissiblePane(onDismissed: onDelete),
+          children: [
+            SlidableAction(
+              onPressed: (context) => onDelete(),
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              icon: Icons.delete,
+              label: 'Delete'.tr,
+            ),
+          ],
         ),
-        onDismissed: (direction) {
-          controller.removeTask(taskId);
-
-          if (direction == DismissDirection.endToStart) {
-            controller.deleteTask(taskId, title, attachmentUrl: attachmentUrl);
-          } else if (direction == DismissDirection.startToEnd) {
-            controller.completeTask(taskId, title);
-          }
-        },
         child: Container(
           color: backgroundColor,
           child: InkWell(
+            onLongPress: (onHold ?? false)
+                ? () => _showOptionsDialog(controller, taskId, task)
+                : null,
             onTap: onTap,
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
@@ -107,6 +100,21 @@ Widget buildTaskTile({
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      if (showPin ?? true)
+                        InkWell(
+                          onTap: () {
+                            controller.togglePinStatus(taskId, task);
+                          },
+                          child: isPinned
+                              ? Icon(
+                                  Icons.push_pin,
+                                  size: 20.sp,
+                                )
+                              : Icon(
+                                  Icons.push_pin_outlined,
+                                  size: 20.sp,
+                                ),
+                        ),
                     ],
                   ),
                   SizedBox(height: 10.h),
@@ -128,7 +136,7 @@ Widget buildTaskTile({
                   ),
                   SizedBox(height: 10.h),
                   Align(
-                    alignment: Alignment.bottomRight,
+                    alignment: Alignment.topRight,
                     child: _buildDateDisplay(
                         startDate, dueDate, subtleIconAndDateColor),
                   ),
@@ -139,6 +147,34 @@ Widget buildTaskTile({
         ),
       ),
     ),
+  );
+}
+
+void _showOptionsDialog(controller, String taskId, Task task) {
+  showDialog(
+    context: Get.context!,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Hidden Task'.tr),
+        content: Text('Are you sure you want to hide this task?'.tr),
+        actions: <Widget>[
+          TextButton(
+            child:
+                Text('Cancel'.tr, style: const TextStyle(color: Colors.black)),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          TextButton(
+            child: Text('Hide'.tr, style: const TextStyle(color: Colors.red)),
+            onPressed: () {
+              controller.hideTask(taskId, task);
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
   );
 }
 

@@ -3,7 +3,6 @@ import 'package:hive_ce/hive.dart';
 part 'note_model.g.dart';
 
 @HiveType(typeId: 0)
-
 class Note {
   @HiveField(0)
   String? id;
@@ -23,6 +22,10 @@ class Note {
   final DateTime? updatedAt;
   @HiveField(8)
   final List<String> tags;
+  @HiveField(9)
+  bool isSynced = false;
+  @HiveField(10)
+  bool isDeleted = false;
 
   Note({
     this.id,
@@ -34,6 +37,8 @@ class Note {
     DateTime? createdAt,
     this.updatedAt,
     this.tags = const [],
+    this.isSynced = false,
+    this.isDeleted = false,
   }) : createdAt = createdAt ?? DateTime.now();
 
   factory Note.fromMap(Map<String, dynamic> map, String documentId) {
@@ -48,6 +53,8 @@ class Note {
       colorValue: map['colorValue'] as int?,
       isPin: map['isPin'] ?? false,
       isHidden: map['isHidden'] as bool?,
+      isSynced: map['isSynced'] as bool? ?? false,
+      isDeleted: map['isDeleted'] as bool? ?? false,
       createdAt: map['createdAt'] != null
           ? DateTime.parse(map['createdAt'])
           : DateTime.now(),
@@ -68,6 +75,8 @@ class Note {
       'colorValue': colorValue,
       'isPin': isPin,
       'isHidden': isHidden,
+      'isSynced': isSynced,
+      'isDeleted': isDeleted,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
       'tags': tags,
@@ -91,6 +100,12 @@ class Note {
       isHidden: updateData.containsKey('isHidden')
           ? updateData['isHidden'] as bool?
           : originalNote.isHidden,
+      isSynced: updateData.containsKey('isSynced')
+          ? updateData['isSynced'] as bool
+          : originalNote.isSynced,
+      isDeleted: updateData.containsKey('isDeleted')
+          ? updateData['isDeleted'] as bool
+          : originalNote.isDeleted,
       createdAt: originalNote.createdAt,
       updatedAt: DateTime.now(),
       tags: updateData.containsKey('tags')

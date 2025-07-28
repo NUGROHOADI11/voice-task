@@ -1,14 +1,10 @@
-import 'dart:developer';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
-import '../../configs/routes/route.dart';
+// import '../../configs/routes/route.dart';
 import '../../constants/core/api/api_constant.dart';
-import '../../features/landing/repositories/landing_repository.dart';
-import '../../features/note/repositories/note_repository.dart';
-import '../../features/task/repositories/task_repository.dart';
 
 class GlobalController extends GetxController {
   static GlobalController get to => Get.find();
@@ -40,36 +36,6 @@ class GlobalController extends GetxController {
   void onInit() {
     super.onInit();
     checkConnection();
-
-    Connectivity()
-        .onConnectivityChanged
-        .listen((List<ConnectivityResult> results) async {
-      bool hasInternet =
-          results.any((result) => result != ConnectivityResult.none);
-      isConnected.value = hasInternet;
-
-      if (hasInternet) {
-        final user = LandingRepository().getUserProfile();
-
-        if (user != null) {
-          try {
-            await NoteRepository().syncNotesToFirebase();
-            await TaskRepository().syncTasksToFirebase();
-            log("Notes synced successfully");
-          } catch (e) {
-            log("Error syncing notes: $e");
-          }
-
-          if (Get.currentRoute == Routes.offlineRoute) {
-            Get.offAllNamed(Routes.homeRoute);
-          }
-        } else {
-          log("User not logged in, skipping sync.");
-        }
-      } else {
-        Get.offAllNamed(Routes.offlineRoute);
-      }
-    });
   }
 
   Future<void> checkConnection() async {
@@ -79,9 +45,9 @@ class GlobalController extends GetxController {
       bool hasInternet = connectivityResults
           .any((result) => result != ConnectivityResult.none);
       isConnected.value = hasInternet;
-      if (!hasInternet) {
-        Get.offAllNamed(Routes.offlineRoute);
-      }
+      // if (!hasInternet) {
+      //   Get.offAllNamed(Routes.offlineRoute);
+      // }
     } catch (e) {
       isConnected.value = false;
     }

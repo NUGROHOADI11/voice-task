@@ -121,15 +121,6 @@ class NotificationService {
       NotificationController.to.addNotification(title, body);
     } else {
       log("Permission denied. Scheduling with INEXACT alarm as a fallback.");
-      // await flutterLocalNotificationsPlugin.zonedSchedule(
-      //   id,
-      //   title,
-      //   body,
-      //   tz.TZDateTime.from(scheduledTime, tz.local),
-      //   notificationDetails(),
-      //   matchDateTimeComponents: DateTimeComponents.time,
-      //   androidScheduleMode: AndroidScheduleMode.inexact,
-      // );
       Get.snackbar(
         "Permission Denied",
         "Please allow the app to schedule notifications.",

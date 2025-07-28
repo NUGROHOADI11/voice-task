@@ -3,21 +3,15 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../../../shared/controllers/global_controller.dart';
 import '../../../../../shared/widgets/custom_datepicker.dart';
-import '../../../../../utils/services/firestore_service.dart';
-import '../../../../offline/controllers/offline_controller.dart';
+import '../../../controllers/task_controller.dart';
 import '../../../models/task_model.dart';
 import '../../../repositories/task_repository.dart';
 
 class TaskAddTaskController extends GetxController {
   static TaskAddTaskController get to => Get.find();
-
-  final isOnline = GlobalController.to.isConnected.value;
 
   final titleController = TextEditingController();
   final subtitleController = TextEditingController();
@@ -32,8 +26,6 @@ class TaskAddTaskController extends GetxController {
   final isHidden = false.obs;
 
   final Rx<File?> attachment = Rx<File?>(null);
-  String? uploadedAttachmentUrl;
-
   final formKey = GlobalKey<FormState>();
   final isLoading = false.obs;
 
@@ -95,7 +87,6 @@ class TaskAddTaskController extends GetxController {
 
   void removeAttachment() {
     attachment.value = null;
-    uploadedAttachmentUrl = null;
   }
 
   void resetForm() {
@@ -109,35 +100,14 @@ class TaskAddTaskController extends GetxController {
     isPin.value = false;
     isHidden.value = false;
     attachment.value = null;
-    uploadedAttachmentUrl = null;
   }
 
   Future<void> submitTask() async {
     if (!formKey.currentState!.validate()) return;
 
     isLoading.value = true;
-    uploadedAttachmentUrl = null;
 
     try {
-      if (attachment.value != null) {
-        final file = attachment.value!;
-        final fileName = file.path.split('/').last;
-        final fileBytes = await file.readAsBytes();
-
-        final storageResponse = await Supabase.instance.client.storage
-            .from(dotenv.env['SUPABASE_BUCKET_NAME']!)
-            .uploadBinary(
-              'attachments_task/$fileName',
-              fileBytes,
-              fileOptions: const FileOptions(upsert: true),
-            );
-        log('Storage response: $storageResponse');
-
-        uploadedAttachmentUrl = Supabase.instance.client.storage
-            .from(dotenv.env['SUPABASE_BUCKET_NAME']!)
-            .getPublicUrl('attachments_task/$fileName');
-      }
-
       final task = Task(
         title: titleController.text.trim(),
         subtitle: subtitleController.text.trim().isEmpty
@@ -150,20 +120,16 @@ class TaskAddTaskController extends GetxController {
         priority: selectedPriority.value,
         isPin: isPin.value,
         isHidden: isHidden.value,
-        attachmentUrl: uploadedAttachmentUrl,
+        attachmentUrl: attachment.value?.path,
       );
 
-      if (isOnline) {
-        await FirestoreService().addTask(task.toMap());
-        log('Submitting task to Firestore: ${task.toMap()}');
-      } else {
-        TaskRepository().addTask(task);
-        OfflineController.to.refreshTasks();
-        log('Saving task offline: ${task.toMap()}');
-      }
+      log('Submitting task: $task');
 
-      resetForm();
+      TaskRepository().addTask(task);
+      TaskController.to.fetchTasks();
       Get.back();
+      Get.back();
+      resetForm();
       Get.snackbar('Success', 'Task successfully added');
     } catch (e) {
       Get.snackbar('Error', 'Failed to submit task: $e');

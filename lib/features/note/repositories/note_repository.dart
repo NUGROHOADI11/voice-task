@@ -15,27 +15,70 @@ class NoteRepository {
 
   Future<void> syncNotesToFirebase() async {
     final notes = _noteBox.values.toList();
-    if (notes.isEmpty) return;
 
     for (var note in notes) {
       try {
-        await FirestoreService().addNote(note.toMap());
-        await _noteBox.clear();
+        
+        if (note.isDeleted) {
+          if (note.id != null) {
+            await FirestoreService().deleteNote(note.id!);  
+          }
+          await _noteBox.delete(note.id); 
+          continue;
+        }
+
+        
+        final noteMap = note.toMap();
+        noteMap.remove('isSynced');
+        noteMap.remove('isDeleted');
+
+        await FirestoreService().addNote(noteMap, docId: note.id);
+
+        
+        final updatedNote = Note.fromUpdate(
+          originalNote: note,
+          updateData: {
+            'updatedAt': DateTime.now(),
+            'isSynced': true,
+          },
+        );
+        await _noteBox.put(note.id, updatedNote);
       } catch (e) {
         log("Failed to sync note ${note.id}: $e");
       }
     }
   }
+  
+  Future<void> syncNotesFromFirebase() async {
+    final snapshot = await FirestoreService().getDataNotes().first;
+    for (var doc in snapshot.docs) {
+      final note = Note.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+      await addNote(note);
+    }
+  }
 
   Future<void> addNote(Note note) async {
-    if (note.id == null || note.id!.isEmpty) {
-      note.id = DateTime.now().millisecondsSinceEpoch.toString();
-    }
+    note.id ??= DateTime.now().millisecondsSinceEpoch.toString();
+    note = Note.fromUpdate(
+      originalNote: note,
+      updateData: {
+        'isSynced': false,
+        'isDeleted': false,
+      },
+    );
     await _noteBox.put(note.id, note);
   }
 
   Future<void> updateNote(String id, Note updatedNote) async {
     if (_noteBox.containsKey(id)) {
+      updatedNote = Note.fromUpdate(
+        originalNote: updatedNote,
+        updateData: {
+          'updatedAt': DateTime.now(),
+          'isSynced': false,
+          'isDeleted': false,
+        },
+      );
       await _noteBox.put(id, updatedNote);
     } else {
       throw Exception('Note with id $id not found');
@@ -44,7 +87,13 @@ class NoteRepository {
 
   Future<void> deleteNote(String id) async {
     if (_noteBox.containsKey(id)) {
-      await _noteBox.delete(id);
+      final note = _noteBox.get(id)!;
+      final markedNote = Note.fromUpdate(originalNote: note, updateData: {
+        'isDeleted': true,
+        'isSynced': false,
+        'updatedAt': DateTime.now(),
+      });
+      await _noteBox.put(id, markedNote);
     } else {
       throw Exception('Note with id $id not found');
     }
@@ -60,5 +109,11 @@ class NoteRepository {
 
   Note? getNoteById(String id) {
     return _noteBox.get(id);
+  }
+
+  Stream<List<Note>> watchNotes() {
+    return _noteBox.watch().map((event) {
+      return _noteBox.values.toList();
+    });
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../../../shared/controllers/global_controller.dart';
 import '../../controllers/home_controller.dart';
 import '../../../../shared/styles/color_style.dart';
 import '../components/bottom_nav_bar.dart';
@@ -29,32 +30,49 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final HomeController controller = Get.find<HomeController>();
+    final homeController = HomeController.to;
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: GestureDetector(
-        onTap: () => controller.activityDetected(),
-        onPanDown: (_) => controller.activityDetected(),
+        onTap: () => homeController.activityDetected(),
+        onPanDown: (_) => homeController.activityDetected(),
         behavior: HitTestBehavior.opaque,
-        child: Stack(
-          children: [
-            Obx(() => _screens[controller.currentIndex.value]),
-            BottomNavBar(
-              controller: controller,
-              navBarHiddenOffset: _navBarHiddenOffset,
-            ),
-            VoiceActionButton(
-              controller: controller,
-              initialFabBottomPosition: _initialFabBottomPosition,
-              navBarHiddenOffset: _navBarHiddenOffset,
-              fabHeight: _fabHeight,
-              onPressed: () {
-                controller.activityDetected();
-                _showVoiceCommandDialog(context, controller);
-              },
-            ),
-          ],
+        child: GetX<GlobalController>(
+          builder: (globalController) {
+            final isOnline = globalController.isConnected.value;
+      
+            return Stack(
+              children: [
+                Obx(() => _screens[homeController.currentIndex.value]),
+                BottomNavBar(
+                  controller: homeController,
+                  navBarHiddenOffset: _navBarHiddenOffset,
+                ),
+                VoiceActionButton(
+                  controller: homeController,
+                  initialFabBottomPosition: _initialFabBottomPosition,
+                  navBarHiddenOffset: _navBarHiddenOffset,
+                  fabHeight: _fabHeight,
+                  isDisabled: !isOnline,
+                  onPressed: () {
+                    homeController.activityDetected();
+                    if (!isOnline) {
+                      Get.snackbar(
+                        'No Internet Connection',
+                        'Please check your internet connection and try again.',
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: ColorStyle.danger,
+                        colorText: Colors.white,
+                      );
+                      return;
+                    }
+                    _showVoiceCommandDialog(context, homeController);
+                  },
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

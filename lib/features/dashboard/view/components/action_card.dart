@@ -10,35 +10,89 @@ import 'package:pinput/pinput.dart';
 import 'package:voice_task/features/profile/controllers/profile_controller.dart';
 
 import '../../../../configs/routes/route.dart';
+import '../../../../shared/controllers/global_controller.dart';
 import '../../../../shared/styles/color_style.dart';
+import '../../../note/repositories/note_repository.dart';
+import '../../../task/repositories/task_repository.dart';
 
 Widget buildActionCard(context) {
-  return Container(
-    padding: EdgeInsets.symmetric(vertical: 16.h),
-    decoration: BoxDecoration(
-      color: Colors.black,
-      borderRadius: BorderRadius.circular(12),
-      boxShadow: const [
-        BoxShadow(
-          color: Colors.black12,
-          blurRadius: 6,
-          offset: Offset(0, 2),
-        ),
-      ],
-    ),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildCircleIcon(
-          Icons.notifications_outlined,
-          () => Get.toNamed(Routes.notificationRoute),
-          showBadge: true,
-        ),
-        _buildCircleIcon(
-            Icons.visibility_off, () => _authenticateUser(context)),
-      ],
-    ),
-  );
+  return Obx(() {
+    final isOnline = GlobalController.to.isConnected.value;
+
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 16.h),
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildCircleIcon(
+            Icons.notifications_outlined,
+            () => Get.toNamed(Routes.notificationRoute),
+            showBadge: true,
+          ),
+          _buildCircleIcon(
+            isOnline ? Icons.cloud_upload_outlined : Icons.cloud_off_outlined,
+            () async {
+              try {
+                if (GlobalController.to.isConnected.value) {
+                  Get.defaultDialog(
+                    title: 'Confirm Sync'.tr,
+                    middleText:
+                        'Are you sure you want to sync all your tasks and notes to the cloud?'
+                            .tr,
+                    textConfirm: 'Sync'.tr,
+                    textCancel: 'Cancel'.tr,
+                    confirmTextColor: Colors.white,
+                    buttonColor: ColorStyle.secondary,
+                    onConfirm: () async {
+                      await TaskRepository().syncTasksToFirebase();
+                      await NoteRepository().syncNotesToFirebase();
+                      Get.back();
+                      Get.snackbar(
+                        'Sync Success'.tr,
+                        'All tasks and notes synced to cloud successfully.'.tr,
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Colors.green,
+                        colorText: Colors.white,
+                      );
+                    },
+                  );
+                } else {
+                  Get.snackbar(
+                    'No Internet Connection'.tr,
+                    'Please check your internet connection and try again.'.tr,
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.red,
+                    colorText: Colors.white,
+                  );
+                }
+              } catch (e) {
+                Get.snackbar(
+                  'Sync Failed'.tr,
+                  'Failed to sync tasks: ${e.toString()}'.tr,
+                  snackPosition: SnackPosition.BOTTOM,
+                  backgroundColor: Colors.red,
+                  colorText: Colors.white,
+                );
+              }
+            },
+          ),
+          _buildCircleIcon(
+              Icons.visibility_off, () => _authenticateUser(context)),
+        ],
+      ),
+    );
+  });
 }
 
 Widget _buildCircleIcon(IconData iconData, Callback onTap,

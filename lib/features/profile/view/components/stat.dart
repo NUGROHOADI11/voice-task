@@ -11,15 +11,44 @@ Widget buildStats() {
     height: 80,
     child: Row(
       children: [
-        _buildStatCard('Notes'.tr, NoteController.to.notes.length.toString(), ColorStyle.primary, ColorStyle.white,
+        _buildStatCard(
+            'Notes'.tr,
+            NoteController.to.notes
+                .where((p0) => !p0.isDeleted)
+                .length
+                .toString(),
+            ColorStyle.primary,
+            ColorStyle.white,
             flex: 4),
         SizedBox(width: 8.w),
-        _buildStatCard('Tasks'.tr, TaskController.to.allTasks.length.toString(),
-            ColorStyle.accent, ColorStyle.black,
+        _buildStatCard(
+            'Tasks'.tr,
+            TaskController.to.tasks
+                .where((p0) => !p0.isDeleted)
+                .length
+                .toString(),
+            ColorStyle.accent,
+            ColorStyle.black,
             flex: 3),
         SizedBox(width: 8.w),
-        _buildStatCard('Hidden'.tr, '100', ColorStyle.secondary, ColorStyle.black,
-            flex: 4),
+        _buildStatCard(
+          'Back Up'.tr,
+          (() {
+            final totalItems =
+                NoteController.to.notes.length + TaskController.to.tasks.length;
+            if (totalItems == 0) return 'no data';
+            final syncedNotes =
+                NoteController.to.notes.where((p0) => p0.isSynced).length;
+            final syncedTasks =
+                TaskController.to.tasks.where((p0) => p0.isSynced).length;
+            final syncedPercentage =
+                ((syncedNotes + syncedTasks) / totalItems * 100).round();
+            return '$syncedPercentage%';
+          })(),
+          ColorStyle.secondary,
+          ColorStyle.black,
+          flex: 4,
+        ),
       ],
     ),
   );

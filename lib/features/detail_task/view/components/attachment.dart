@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../shared/widgets/pdf_viewer.dart';
@@ -23,7 +25,8 @@ Widget buildAttachmentSection(Task task) {
       if (hasAttachment)
         InkWell(
           onTap: () {
-            Get.to(() => PdfViewerScreen(url: task.attachmentUrl!));
+            Get.to(() => PdfViewerScreen(filePath: task.attachmentUrl!));
+            log("Opening attachment: ${task.attachmentUrl}");
           },
           child: Row(
             children: [

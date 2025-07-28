@@ -5,9 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:get/get.dart';
 
-import '../../../../../shared/controllers/global_controller.dart';
-import '../../../../../utils/services/firestore_service.dart';
-import '../../../../offline/controllers/offline_controller.dart';
 import '../../../repositories/note_repository.dart';
 import '../models/note_model.dart';
 
@@ -15,8 +12,6 @@ class NoteAddNoteController extends GetxController {
   final titleController = TextEditingController();
   final QuillController quillController = QuillController.basic();
   final FocusNode quillFocusNode = FocusNode();
-  final isOnline = GlobalController.to.isConnected.value;
-
   final characterCount = 0.obs;
   final isLoading = false.obs;
   final isQuillFocused = false.obs;
@@ -74,13 +69,7 @@ class NoteAddNoteController extends GetxController {
         createdAt: DateTime.now(),
       );
 
-      final noteMap = newNote.toMap();
-      if (isOnline) {
-        await FirestoreService().addNote(noteMap);
-      } else {
-        NoteRepository().addNote(newNote);
-        OfflineController.to.refreshNotes();
-      }
+      NoteRepository().addNote(newNote);
       Get.back();
 
       Get.snackbar("Success", "Note added successfully!",

@@ -19,10 +19,12 @@ import 'package:voice_task/features/splash/view/ui/splash_screen.dart';
 
 import '../../features/home/view/ui/home_screen.dart';
 import '../../features/note/bindings/note_binding.dart';
+import '../../features/note/view/ui/note_screen.dart';
 import '../../features/offline/bindings/offline_binding.dart';
 import '../../features/offline/view/ui/offline_screen.dart';
 import '../../features/task/bindings/task_binding.dart';
 import '../../features/task/sub_features/add_task/view/ui/add_task_screen.dart';
+import '../../features/task/view/ui/task_screen.dart';
 
 abstract class Pages {
   static final pages = [
@@ -43,6 +45,10 @@ abstract class Pages {
         page: () => HomeScreen(),
         binding: HomeBinding()),
     GetPage(
+        name: Routes.noteRoute,
+        page: () => NoteScreen(),
+        binding: NoteBinding()),
+    GetPage(
         name: Routes.detailNoteRoute,
         page: () => DetailNoteScreen(),
         binding: DetailNoteBinding()),
@@ -50,6 +56,10 @@ abstract class Pages {
         name: Routes.noteAddNoteRoute,
         page: () => AddNoteScreen(),
         binding: NoteBinding()),
+    GetPage(
+        name: Routes.taskRoute,
+        page: () => TaskScreen(),
+        binding: TaskBinding()),
     GetPage(
         name: Routes.detailTaskRoute,
         page: () => DetailTaskScreen(),

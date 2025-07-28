@@ -1,21 +1,18 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
-import 'package:get/get.dart';
 
-import '../../../shared/controllers/global_controller.dart';
-import '../../../utils/services/firestore_service.dart';
 import '../../note/repositories/note_repository.dart';
 import '../../note/sub_features/add_note/models/note_model.dart';
-import '../../offline/controllers/offline_controller.dart';
 
 class DetailNoteController extends GetxController {
   static DetailNoteController get to => Get.find();
 
-  final isOnline = GlobalController.to.isConnected.value;
   final titleController = TextEditingController();
+  final noteRepo = NoteRepository();
   final formKey = GlobalKey<FormState>();
   final Rxn<Note> note = Rxn<Note>();
   final Rxn<int> selectedColor = Rxn<int>();
@@ -52,25 +49,13 @@ class DetailNoteController extends GetxController {
     try {
       isLoading.value = true;
 
-      if (isOnline) {
-        final docSnapshot = await FirestoreService().getNoteDocument(noteId);
-        if (docSnapshot.exists && docSnapshot.data() != null) {
-          note.value = Note.fromMap(
-              docSnapshot.data()! as Map<String, dynamic>, docSnapshot.id);
-        } else {
-          Get.snackbar("Error", "Note not found in cloud.",
-              snackPosition: SnackPosition.BOTTOM);
-          return;
-        }
+      final localNote = noteRepo.getNoteById(noteId);
+      if (localNote != null) {
+        note.value = localNote;
       } else {
-        final localNote = NoteRepository().getNoteById(noteId);
-        if (localNote != null) {
-          note.value = localNote;
-        } else {
-          Get.snackbar("Offline", "Note not found locally.",
-              snackPosition: SnackPosition.BOTTOM);
-          return;
-        }
+        Get.snackbar("Offline", "Note not found locally.",
+            snackPosition: SnackPosition.BOTTOM);
+        return;
       }
 
       titleController.text = note.value?.title ?? '';
@@ -107,13 +92,7 @@ class DetailNoteController extends GetxController {
         updatedAt: DateTime.now(),
       );
 
-      if (isOnline) {
-        await FirestoreService().updateNote(noteId, updatedNote.toMap());
-      } else {
-        await NoteRepository().updateNote(noteId, updatedNote);
-        OfflineController.to.refreshNotes();
-
-      }
+      await noteRepo.updateNote(noteId, updatedNote);
 
       Get.back();
       Get.snackbar("Success", "Note updated successfully!",
@@ -144,13 +123,7 @@ class DetailNoteController extends GetxController {
   Future<void> deleteNote() async {
     try {
       isLoading.value = true;
-
-      if (isOnline) {
-        await FirestoreService().deleteNote(noteId);
-      } else {
-        await NoteRepository().deleteNote(noteId);
-        OfflineController.to.refreshNotes();
-      }
+      await noteRepo.deleteNote(noteId);
 
       Get.back();
       Get.snackbar("Success", "Note deleted successfully!",

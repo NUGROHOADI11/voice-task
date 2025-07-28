@@ -99,14 +99,14 @@ Widget _buildDateItem({
           Text(
             day,
             style: TextStyle(
-              color: isSelected ? ColorStyle.black : ColorStyle.grey,
+              color: isSelected ? ColorStyle.black : Colors.grey.shade400,
               fontWeight: FontWeight.bold,
             ),
           ),
           Text(
             dateText,
             style: TextStyle(
-              color: isSelected ? ColorStyle.black : ColorStyle.grey,
+              color: isSelected ? ColorStyle.black : Colors.grey.shade400,
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),

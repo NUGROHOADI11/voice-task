@@ -16,6 +16,7 @@ import 'package:voice_task/features/landing/models/user_model.dart';
 
 import 'configs/localizations/localization_string.dart';
 import 'features/note/sub_features/add_note/models/note_model.dart';
+import 'features/task/models/task_model.dart';
 import 'firebase_options.dart';
 
 import 'configs/pages/page.dart';
@@ -31,9 +32,17 @@ void main() async {
   final appDocumentDir = await getApplicationDocumentsDirectory();
   await Hive.initFlutter(appDocumentDir.path);
   Hive.registerAdapter(NoteAdapter());
+  Hive.registerAdapter(TaskAdapter());
+  Hive.registerAdapter(TaskStatusAdapter());
+  Hive.registerAdapter(TaskPriorityAdapter());
   Hive.registerAdapter(UserModelAdapter());
   await Hive.openBox("voice_task");
   await Hive.openBox<Note>('notes');
+  await Hive.openBox<Map>('pending_notes_sync'); 
+  await Hive.openBox<Task>('tasks');
+  await Hive.openBox<Map>('pending_task_sync');
+  await Hive.openBox<TaskStatus>('taskStatus');
+  await Hive.openBox<TaskPriority>('taskPriority');
   await Hive.openBox<UserModel>('userProfile');
 
   await Get.putAsync(() async {

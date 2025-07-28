@@ -10,6 +10,7 @@ class VoiceActionButton extends StatelessWidget {
   final double navBarHiddenOffset;
   final double fabHeight;
   final VoidCallback onPressed;
+  final bool isDisabled;
 
   const VoiceActionButton({
     super.key,
@@ -18,6 +19,7 @@ class VoiceActionButton extends StatelessWidget {
     required this.navBarHiddenOffset,
     required this.fabHeight,
     required this.onPressed,
+    this.isDisabled = false,
   });
 
   @override
@@ -34,8 +36,8 @@ class VoiceActionButton extends StatelessWidget {
           padding: const EdgeInsets.all(18),
           height: fabHeight,
           width: fabHeight,
-          decoration: const BoxDecoration(
-            color: ColorStyle.secondary,
+          decoration: BoxDecoration(
+            color: isDisabled ? ColorStyle.grey : ColorStyle.secondary,
             shape: BoxShape.circle,
           ),
           child: InkWell(

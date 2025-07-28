@@ -14,10 +14,9 @@ class FirestoreService {
     return _db.collection('tasks').doc(taskId).get();
   }
 
-  Future<String> addTask(Map<String, dynamic> task) async {
-    final docRef =
-        await FirebaseFirestore.instance.collection('tasks').add(task);
-    return docRef.id;
+  Future<void> addTask(Map<String, dynamic> data, {String? docId}) async {
+    final doc = FirebaseFirestore.instance.collection('tasks').doc(docId);
+    await doc.set(data, SetOptions(merge: true));
   }
 
   Future<void> updateTask(String id, Map<String, dynamic> data) {
@@ -37,8 +36,9 @@ class FirestoreService {
     return _db.collection('notes').doc(taskId).get();
   }
 
-  Future<void> addNote(Map<String, dynamic> note) {
-    return _db.collection('notes').add(note);
+  Future<void> addNote(Map<String, dynamic> note, {String? docId}) async {
+    final doc = FirebaseFirestore.instance.collection('notes').doc(docId);
+    await doc.set(note, SetOptions(merge: true));
   }
 
   Future<void> updateNote(String id, Map<String, dynamic> data) {
