@@ -5,6 +5,6 @@ import '../controllers/detail_task_controller.dart';
 class DetailTaskBinding extends Bindings {
   @override
   void dependencies() {
-    Get.put(DetailTaskController());
+    Get.lazyPut(() => DetailTaskController(), fenix: true);
   }
 }

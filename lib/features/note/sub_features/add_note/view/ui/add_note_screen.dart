@@ -11,7 +11,7 @@ import '../../controllers/note_add_note_controller.dart';
 
 class AddNoteScreen extends StatelessWidget {
   AddNoteScreen({super.key});
-  final controller = Get.put(NoteAddNoteController());
+  final controller = Get.find<NoteAddNoteController>();
   final assetsConstant = NoteAssetsConstant();
 
   @override

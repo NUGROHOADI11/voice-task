@@ -8,7 +8,7 @@ import '../../../landing/controllers/landing_controller.dart';
 
 class SplashScreen extends StatelessWidget {
   SplashScreen({super.key});
-  final authControl = Get.put(LandingController(), permanent: true);
+  final authControl = Get.find<LandingController>();
 
   @override
   Widget build(BuildContext context) {

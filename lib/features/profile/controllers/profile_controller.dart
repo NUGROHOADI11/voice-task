@@ -10,7 +10,7 @@ import '../../../utils/services/hive_service.dart';
 import '../../landing/models/user_model.dart';
 
 class ProfileController extends GetxController {
-  static ProfileController get to => Get.put(ProfileController());
+  static ProfileController get to => Get.find();
 
   final String? language = LocalStorageService.getLanguagePreference();
   final RxString selectedLanguage = RxString('');

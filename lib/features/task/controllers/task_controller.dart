@@ -15,14 +15,20 @@ class TaskController extends GetxController {
   var isSearching = false.obs;
   var searchQuery = ''.obs;
   late StreamSubscription _taskSubscription;
+  final RxInt _taskUpdateTrigger = 0.obs;
 
   @override
   void onInit() {
     super.onInit();
     fetchTasks();
-    _taskSubscription = taskRepo.watchTasks().listen((event) {
-      log("Task updated: $event");
+
+    debounce<int>(_taskUpdateTrigger, (_) {
       fetchTasks();
+    }, time: const Duration(milliseconds: 500));
+
+    _taskSubscription = taskRepo.watchTasks().listen((event) {
+      log("Task updated (debounce): $event");
+      _taskUpdateTrigger.value++;
     });
   }
 

@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import '../models/notification_model.dart';
 
 class NotificationController extends GetxController {
-  static NotificationController get to => Get.put(NotificationController());
+  static NotificationController get to => Get.find();
 
   final RxList<NotificationModel> notifications = <NotificationModel>[].obs;
 

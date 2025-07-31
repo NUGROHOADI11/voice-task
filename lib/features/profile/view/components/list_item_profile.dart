@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:pinput/pinput.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../shared/styles/color_style.dart';
 import '../../../../shared/widgets/custom_datepicker.dart';
+import '../../../../shared/widgets/inapp_webview.dart';
 import '../../../../utils/services/firestore_service.dart';
 import '../../controllers/profile_controller.dart';
 import 'bottom_sheet.dart';
@@ -122,9 +122,7 @@ List<Widget> buildListItem(context) {
       () => buildProfileItem(
         icon: Icons.password_outlined,
         title: controller.pin.value.isEmpty ? 'Set Pin'.tr : 'Change Pin'.tr,
-        subtitle: controller.pin.value.isNotEmpty
-            ? "******"
-            : 'No pin set'.tr,
+        subtitle: controller.pin.value.isNotEmpty ? "******" : 'No pin set'.tr,
         onTap: () {
           _showPinBottomSheet(context);
         },
@@ -157,10 +155,8 @@ Future<void> _launchHelpUrl() async {
       Uri.parse('https://www.google.com/policies/privacy/');
 
   try {
-    await launchUrl(
-      helpAndSupportUrl,
-      mode: LaunchMode.inAppWebView,
-    );
+    Get.to(() => InAppWebViewScreen(
+        url: helpAndSupportUrl.toString(), title: 'Help & Support'.tr));
   } catch (e) {
     Get.snackbar(
       'Error',

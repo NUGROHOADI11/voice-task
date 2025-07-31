@@ -153,18 +153,26 @@ Future<void> _authenticateUser(context) async {
         "Please try again or use PIN".tr,
         snackPosition: SnackPosition.BOTTOM,
       );
-      _showVerificationModal(context);
+      
+      if (ProfileController.to.pin.value.isNotEmpty) {
+        _showVerificationModal(context);
+      }
     }
   } catch (e) {
     log("Authentication error: $e");
+
     Get.snackbar(
       "Error".tr,
       "Biometric authentication unavailable. Using PIN instead.".tr,
       snackPosition: SnackPosition.BOTTOM,
     );
-    _showVerificationModal(context);
+
+    if (ProfileController.to.pin.value.isNotEmpty) {
+      _showVerificationModal(context);
+    }
   }
 }
+
 
 void _showVerificationModal(BuildContext context) {
   showDialog(

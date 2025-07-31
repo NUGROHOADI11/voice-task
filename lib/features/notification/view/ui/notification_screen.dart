@@ -10,8 +10,7 @@ import '../../controllers/notification_controller.dart';
 class NotificationScreen extends StatelessWidget {
   NotificationScreen({super.key});
 
-  final NotificationController notificationController =
-      Get.put(NotificationController());
+  final notificationController = NotificationController.to;
 
   @override
   Widget build(BuildContext context) {
@@ -93,8 +92,6 @@ class NotificationScreen extends StatelessWidget {
                 body: body,
                 scheduledTime: DateTime.now().add(const Duration(seconds: 10)),
               );
-
-              
             },
             label: const Text('Schedule'),
             icon: const Icon(Icons.timer),

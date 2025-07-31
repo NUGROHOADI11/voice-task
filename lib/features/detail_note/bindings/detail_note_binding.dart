@@ -5,6 +5,6 @@ import '../controllers/detail_note_controller.dart';
 class DetailNoteBinding extends Bindings {
   @override
   void dependencies() {
-    Get.put(DetailNoteController());
+    Get.lazyPut(() => DetailNoteController(), fenix: true);
   }
 }

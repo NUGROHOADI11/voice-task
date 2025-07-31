@@ -13,7 +13,7 @@ class DetailNoteScreen extends StatelessWidget {
   DetailNoteScreen({super.key});
 
   final assetsConstant = DetailNoteAssetsConstant();
-  final controller = Get.put(DetailNoteController());
+  final controller = Get.find();
 
   @override
   Widget build(BuildContext context) {
