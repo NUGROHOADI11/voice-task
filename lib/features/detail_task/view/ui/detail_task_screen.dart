@@ -24,7 +24,7 @@ extension StringExtension on String {
 class DetailTaskScreen extends StatelessWidget {
   DetailTaskScreen({super.key});
 
-  final controller = Get.find<DetailTaskController>();
+  final controller = DetailTaskController.to;
 
   @override
   Widget build(BuildContext context) {

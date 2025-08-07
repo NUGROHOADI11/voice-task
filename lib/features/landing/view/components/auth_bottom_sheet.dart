@@ -7,7 +7,7 @@ import '../../controllers/landing_controller.dart';
 
 class AuthBottomSheet extends StatelessWidget {
   final String type;
-  final LandingController _controller = LandingController.to;
+  final _controller = LandingController.to;
 
   AuthBottomSheet({super.key, required this.type});
 
@@ -52,18 +52,68 @@ class AuthBottomSheet extends StatelessWidget {
               controller: _controller.passwordTextController,
               isPasswordVisible: _controller.isPassword,
               onTogglePassword: _controller.togglePasswordVisibility,
+              onChanged: (value) => _controller.validatePassword(),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
+            if (!isLogin) ...[
+              _buildPasswordValidationBar(),
+            ],
+            const SizedBox(height: 10),
+            if (!isLogin)
+              _buildInput("Confirm Password",
+                  isPassword: true,
+                  controller: _controller.confirmPasswordTextController,
+                  isPasswordVisible: _controller.isConfirmPassword,
+                  onTogglePassword:
+                      _controller.toggleConfirmPasswordVisibility),
+            const SizedBox(height: 30),
             _buildMainButton(context),
-            const SizedBox(height: 10),
             _buildBottomText(context),
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
             if (isLogin) _buildDividerWithText(),
-            if (isLogin) _buildSocialButtons(),
+            _buildSocialButtons(),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildValidationRow(String text, bool isValid) {
+    return Row(
+      children: [
+        Icon(
+          isValid ? Icons.check_circle : Icons.cancel,
+          color: isValid ? Colors.green : Colors.grey.shade600,
+          size: 16,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          text,
+          style: TextStyle(
+            color: isValid ? Colors.green : Colors.grey.shade700,
+            fontSize: 12,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPasswordValidationBar() {
+    return Obx(() => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildValidationRow(
+                "At least 8 characters", _controller.hasMin8Chars.value),
+            const SizedBox(height: 4),
+            _buildValidationRow(
+                "Contains an uppercase & lowercase letter",
+                _controller.hasUppercase.value &&
+                    _controller.hasLowercase.value),
+            const SizedBox(height: 4),
+            _buildValidationRow(
+                "Contains a symbol (!@#\$...)", _controller.hasSymbol.value),
+          ],
+        ));
   }
 
   Widget _buildInput(
@@ -72,6 +122,7 @@ class AuthBottomSheet extends StatelessWidget {
     TextEditingController? controller,
     RxBool? isPasswordVisible,
     VoidCallback? onTogglePassword,
+    void Function(String)? onChanged,
   }) {
     if (!isPassword) {
       return CustomTextField(
@@ -93,6 +144,7 @@ class AuthBottomSheet extends StatelessWidget {
         controller: controller,
         obscureText: isPasswordVisible?.value ?? true,
         onTogglePassword: onTogglePassword,
+        onChanged: onChanged,
       );
     });
   }
@@ -105,7 +157,7 @@ class AuthBottomSheet extends StatelessWidget {
                 ? null
                 : () async {
                     if (isLogin) {
-                      if (_controller.isFormValid) {
+                      if (_controller.isLoginFormValid) {
                         await _controller.login(
                           _controller.emailTextController.text.trim(),
                           _controller.passwordTextController.text.trim(),
@@ -119,10 +171,11 @@ class AuthBottomSheet extends StatelessWidget {
                         );
                       }
                     } else {
-                      if (_controller.isFormValid) {
+                      if (_controller.isSignupFormValid) {
                         await _controller.signup(
                           _controller.emailTextController.text.trim(),
                           _controller.passwordTextController.text.trim(),
+                          _controller.confirmPasswordTextController.text.trim(),
                         );
                       } else {
                         Get.snackbar(

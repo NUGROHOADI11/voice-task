@@ -3,17 +3,17 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:voice_task/features/detail_note/controllers/detail_note_controller.dart';
 import 'package:voice_task/shared/widgets/custom_appbar.dart';
 
 import '../../../../shared/styles/color_style.dart';
 import '../../constants/detail_note_assets_constant.dart';
+import '../../controllers/detail_note_controller.dart';
 
 class DetailNoteScreen extends StatelessWidget {
   DetailNoteScreen({super.key});
 
   final assetsConstant = DetailNoteAssetsConstant();
-  final controller = Get.find();
+  final controller = DetailNoteController.to;
 
   @override
   Widget build(BuildContext context) {

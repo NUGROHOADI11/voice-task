@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:voice_task/constants/core/assets/image_constant.dart';
 
 import '../../../../shared/styles/color_style.dart';
@@ -35,13 +36,14 @@ class LandingScreen extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   )),
               const Text(
-                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.normal,
-                  )),
-              const SizedBox(height: 100),
+                'Convert your voice into tasks instantly and efficiently — perfect for boosting your daily productivity.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+              SizedBox(height: 80.h),
               buildCustomButton(
                 () => showModalBottomSheet(
                   backgroundColor: ColorStyle.white,
@@ -58,23 +60,23 @@ class LandingScreen extends StatelessWidget {
                 ColorStyle.primary,
                 ColorStyle.light,
               ),
-              const SizedBox(height: 10),
-              buildCustomButton(
-                () => showModalBottomSheet(
-                  backgroundColor: ColorStyle.white,
-                  context: context,
-                  isScrollControlled: true,
-                  showDragHandle: true,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(20)),
-                  ),
-                  builder: (_) => AuthBottomSheet(type: "Register"),
-                ),
-                "Register",
-                ColorStyle.light,
-                ColorStyle.dark,
-              ),
+              // const SizedBox(height: 10),
+              // buildCustomButton(
+              //   () => showModalBottomSheet(
+              //     backgroundColor: ColorStyle.white,
+              //     context: context,
+              //     isScrollControlled: true,
+              //     showDragHandle: true,
+              //     shape: const RoundedRectangleBorder(
+              //       borderRadius:
+              //           BorderRadius.vertical(top: Radius.circular(20)),
+              //     ),
+              //     builder: (_) => AuthBottomSheet(type: "Register"),
+              //   ),
+              //   "Register",
+              //   ColorStyle.light,
+              //   ColorStyle.dark,
+              // ),
             ],
           ),
         ),

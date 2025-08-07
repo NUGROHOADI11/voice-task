@@ -10,6 +10,7 @@ class CustomTextField extends StatelessWidget {
   final VoidCallback? onTogglePassword;
   final TextInputType? keyboardType;
   final String? Function(String?)? validator;
+  final void Function(String)? onChanged;
 
   const CustomTextField({
     super.key,
@@ -21,6 +22,7 @@ class CustomTextField extends StatelessWidget {
     this.onTogglePassword,
     this.keyboardType,
     this.validator,
+    this.onChanged,
   });
 
   @override
@@ -37,7 +39,6 @@ class CustomTextField extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        
         Container(
           decoration: BoxDecoration(
             color: ColorStyle.white,
@@ -56,6 +57,7 @@ class CustomTextField extends StatelessWidget {
             obscureText: isPassword && obscureText,
             keyboardType: keyboardType,
             validator: validator,
+            onChanged: onChanged,
             decoration: InputDecoration(
               hintText: hintText,
               filled: true,
@@ -67,9 +69,7 @@ class CustomTextField extends StatelessWidget {
               suffixIcon: isPassword
                   ? IconButton(
                       icon: Icon(
-                        obscureText 
-                            ? Icons.visibility_off 
-                            : Icons.visibility,
+                        obscureText ? Icons.visibility_off : Icons.visibility,
                         color: Colors.grey,
                       ),
                       onPressed: onTogglePassword,

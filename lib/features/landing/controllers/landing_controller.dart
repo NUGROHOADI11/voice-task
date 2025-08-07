@@ -22,8 +22,17 @@ class LandingController extends GetxController {
 
   final emailTextController = TextEditingController();
   final passwordTextController = TextEditingController();
+  final confirmPasswordTextController = TextEditingController();
   final usernameTextController = TextEditingController();
+
   final isPassword = true.obs;
+  final isConfirmPassword = true.obs;
+
+  final hasMin8Chars = false.obs;
+  final hasUppercase = false.obs;
+  final hasLowercase = false.obs;
+  final hasSymbol = false.obs;
+
   final isLoading = false.obs;
   final GoogleSignIn signIn = GoogleSignIn.instance;
   final landingRepository = LandingRepository();
@@ -48,19 +57,54 @@ class LandingController extends GetxController {
 
   @override
   void onClose() {
+    passwordTextController.removeListener(validatePassword);
+
     emailTextController.dispose();
     passwordTextController.dispose();
+    confirmPasswordTextController.dispose();
     usernameTextController.dispose();
     super.onClose();
+  }
+
+  void validatePassword() {
+    final password = passwordTextController.text;
+
+    hasMin8Chars.value = password.length >= 8;
+    hasUppercase.value = password.contains(RegExp(r'[A-Z]'));
+    hasLowercase.value = password.contains(RegExp(r'[a-z]'));
+    hasSymbol.value = password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
   }
 
   void togglePasswordVisibility() {
     isPassword.toggle();
   }
 
-  bool get isFormValid =>
-      emailTextController.text.isNotEmpty ||
+  void toggleConfirmPasswordVisibility() {
+    isConfirmPassword.toggle();
+  }
+
+  void _clearTextControllers() {
+    emailTextController.clear();
+    passwordTextController.clear();
+    confirmPasswordTextController.clear();
+    usernameTextController.clear();
+  }
+
+  bool get isLoginFormValid =>
+      emailTextController.text.isNotEmpty &&
       passwordTextController.text.isNotEmpty;
+
+  bool get isSignupFormValid =>
+      usernameTextController.text.isNotEmpty &&
+      emailTextController.text.isNotEmpty &&
+      passwordTextController.text.isNotEmpty &&
+      confirmPasswordTextController.text.isNotEmpty;
+
+  bool get isPasswordStrong =>
+      hasMin8Chars.value &&
+      hasUppercase.value &&
+      hasLowercase.value &&
+      hasSymbol.value;
 
   Future<void> login(String email, String pass) async {
     isLoading.value = true;
@@ -103,6 +147,7 @@ class LandingController extends GetxController {
 
       TaskRepository().deleteAllTasks();
       NoteRepository().deleteAllNotes();
+      _clearTextControllers();
       await landingRepository.deleteUserProfile();
       Get.offAllNamed(Routes.landingRoute);
     } catch (e) {
@@ -135,15 +180,25 @@ class LandingController extends GetxController {
     }
   }
 
-  Future<void> signup(String email, String pass) async {
+  Future<void> signup(String email, String pass, String confirmPass) async {
     isLoading.value = true;
     try {
+      if (pass != confirmPass) {
+        _showErrorDialog('Passwords do not match.');
+        return;
+      }
+      if (!isPasswordStrong) {
+        _showErrorDialog('Password must be at least 8 characters long, '
+            'and contain uppercase, lowercase letters, and symbols.');
+        return;
+      }
+
       UserCredential userCredential = await auth.createUserWithEmailAndPassword(
           email: email, password: pass);
 
       if (userCredential.user != null) {
         UserModel newUser = UserModel(
-          username: usernameTextController.text,
+          username: usernameTextController.text.trim(),
           email: userCredential.user!.email!,
         );
         await _firestoreService.addUser(newUser.toMap());

@@ -82,6 +82,7 @@ dependencies:
   flutter_slidable: ^4.0.0
   pull_to_refresh: ^2.0.0
   webview_flutter: ^4.13.0
+  geocoding: ^4.0.0
 
 dev_dependencies:
   flutter_test:
