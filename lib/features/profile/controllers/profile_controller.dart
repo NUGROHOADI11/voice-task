@@ -1,10 +1,17 @@
 import 'dart:developer';
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../shared/styles/color_style.dart';
+import '../../../shared/widgets/image_picker_dialog.dart';
 import '../../../utils/services/firestore_service.dart';
 import '../../../utils/services/hive_service.dart';
 import '../../landing/models/user_model.dart';
@@ -12,8 +19,13 @@ import '../../landing/models/user_model.dart';
 class ProfileController extends GetxController {
   static ProfileController get to => Get.find();
 
+  final supabase = Supabase.instance.client;
+
   final String? language = LocalStorageService.getLanguagePreference();
   final RxString selectedLanguage = RxString('');
+  final RxString profileImageUrl = ''.obs;
+  final Rx<File?> imageFile = Rx<File?>(null);
+  final RxString imageUrl = RxString('');
 
   final FirestoreService _firestoreService = FirestoreService();
   final user = FirebaseAuth.instance.currentUser;
@@ -29,6 +41,8 @@ class ProfileController extends GetxController {
   var profilePictureUrl = ''.obs;
   var birthDate = ''.obs;
   var userId = ''.obs;
+  var isEditingUsername = false.obs;
+  late FocusNode usernameFocusNode;
 
   var isLoading = false.obs;
 
@@ -45,7 +59,29 @@ class ProfileController extends GetxController {
   void onInit() {
     super.onInit();
     selectedLanguage.value = language ?? '';
+    usernameFocusNode = FocusNode();
     fetchUserData();
+  }
+
+  @override
+  void onClose() {
+    username.dispose();
+    email.dispose();
+    bio.dispose();
+    phone.dispose();
+    address.dispose();
+    usernameFocusNode.dispose();
+    super.onClose();
+  }
+
+  void toggleEditingUsername() {
+    isEditingUsername.value = !isEditingUsername.value;
+    if (isEditingUsername.value) {
+      usernameFocusNode.requestFocus();
+    } else {
+      usernameFocusNode.unfocus();
+      updateUsername();
+    }
   }
 
   Future<void> fetchUserData() async {
@@ -95,6 +131,159 @@ class ProfileController extends GetxController {
       Get.snackbar(
         "Error",
         "Failed to fetch user data: $e",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: ColorStyle.danger,
+        colorText: ColorStyle.white,
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> pickImage() async {
+    try {
+      ImageSource? imageSource = await Get.defaultDialog(
+        title: '',
+        titleStyle: const TextStyle(fontSize: 0),
+        content: const ImagePickerDialog(),
+      );
+
+      if (imageSource == null) return;
+
+      final pickedFile = await ImagePicker().pickImage(
+        source: imageSource,
+        maxWidth: 1400,
+        maxHeight: 1400,
+        imageQuality: 90,
+      );
+
+      if (pickedFile != null) {
+        await _cropImage(File(pickedFile.path));
+      }
+    } catch (e) {
+      log("Error picking image: $e");
+      Get.snackbar(
+        'error'.tr,
+        'failed_to_pick_image'.tr,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
+
+  Future<void> _cropImage(File imageFile) async {
+    try {
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: imageFile.path,
+        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+        compressQuality: 85,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'cropper'.tr,
+            toolbarColor: ColorStyle.primary,
+            toolbarWidgetColor: Colors.white,
+            initAspectRatio: CropAspectRatioPreset.square,
+            lockAspectRatio: true,
+          ),
+          IOSUiSettings(
+            title: 'cropper'.tr,
+            aspectRatioLockEnabled: true,
+          ),
+        ],
+      );
+
+      if (croppedFile != null) {
+        this.imageFile.value = File(croppedFile.path);
+      }
+    } catch (e) {
+      log("Error cropping image: $e");
+      throw Exception('failed_to_crop_image'.tr);
+    }
+  }
+
+  Future<void> uploadImage() async {
+    if (imageFile.value == null) {
+      log("No image file selected.");
+      Get.snackbar(
+        'error'.tr,
+        'no_image_selected'.tr,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    try {
+      isLoading.value = true;
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final response = await supabase.storage.from(dotenv.env['SUPABASE_BUCKET_NAME']!).uploadBinary(
+            'image_url/$fileName',
+            await imageFile.value!.readAsBytes(),
+            fileOptions: FileOptions(contentType: 'image/jpeg'),
+          );
+      log("Image upload response: $response");
+
+      currentUser.value = UserModel.fromUpdate(
+        currentUser.value!,
+        {'photoUrl': imageUrl.value},
+      );
+
+      imageUrl.value = supabase.storage.from(dotenv.env['SUPABASE_BUCKET_NAME']!).getPublicUrl('image_url/$fileName');
+      profileImageUrl.value = imageUrl.value;
+
+      if (currentUser.value != null) {
+        await _firestoreService.updateUser(
+          userId.value,
+          {'photoUrl': profileImageUrl.value},
+        );
+        currentUser.value = UserModel.fromUpdate(
+          currentUser.value!,
+          {'photoUrl': profileImageUrl.value},
+        );
+      }
+
+      log("Image uploaded successfully: ${imageUrl.value}");
+    } catch (e) {
+      log("Error uploading image: $e");
+      Get.snackbar(
+        'error'.tr,
+        'failed_to_upload_image'.tr,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> updateUsername() async {
+    isEditingUsername.value = false;
+
+    if (currentUser.value == null) {
+      log("No user data available to update.");
+      Get.snackbar(
+        "Error",
+        "No user data available to update.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: ColorStyle.warning,
+        colorText: ColorStyle.white,
+      );
+      return;
+    }
+
+    try {
+      isLoading.value = true;
+      await _firestoreService.updateUser(
+        userId.value,
+        {'username': username.text},
+      );
+      currentUser.value = UserModel.fromUpdate(
+        currentUser.value!,
+        {'username': username.text},
+      );
+      log("Username updated successfully.");
+    } catch (e) {
+      log("Error updating username: $e");
+      Get.snackbar(
+        "Error",
+        "Failed to update username: $e",
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: ColorStyle.danger,
         colorText: ColorStyle.white,

@@ -21,7 +21,7 @@ import 'firebase_options.dart';
 
 import 'configs/pages/page.dart';
 import 'configs/themes/theme.dart';
-import 'shared/bindings/global_binding.dart';
+import 'shared/bindings/global_binding.dart'; 
 import 'utils/services/hive_service.dart';
 import 'utils/services/notification_service.dart';
 import 'utils/services/sentry_services.dart';
