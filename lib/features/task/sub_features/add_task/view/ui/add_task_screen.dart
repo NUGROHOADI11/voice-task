@@ -14,7 +14,7 @@ import '../components/title.dart';
 class AddTaskScreen extends StatelessWidget {
   AddTaskScreen({super.key});
 
-  final controller = Get.put(TaskAddTaskController());
+  final controller = TaskAddTaskController.to;
   final assetsConstant = TaskAssetsConstant();
 
   @override

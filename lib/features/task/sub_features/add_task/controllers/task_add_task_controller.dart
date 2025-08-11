@@ -105,14 +105,17 @@ class TaskAddTaskController extends GetxController {
   Future<void> submitTask() async {
     if (!formKey.currentState!.validate()) return;
 
+    if (titleController.text.trim().isEmpty || subtitleController.text.trim().isEmpty) {
+      Get.snackbar('Error', 'Title and Subtitle are required');
+      return;
+    }
+
     isLoading.value = true;
 
     try {
       final task = Task(
         title: titleController.text.trim(),
-        subtitle: subtitleController.text.trim().isEmpty
-            ? null
-            : subtitleController.text.trim(),
+        subtitle: subtitleController.text.trim(),
         description: descriptionController.text.trim(),
         status: selectedStatus.value,
         startDate: startDate.value,

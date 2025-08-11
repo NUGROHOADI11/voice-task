@@ -27,6 +27,8 @@ Widget buildTitleTile({
             children: [
               TextFormField(
                 controller: titleController,
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Title is required' : null,
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
