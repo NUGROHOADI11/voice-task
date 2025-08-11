@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:voice_task/constants/core/assets/image_constant.dart';
-
 import '../../../../shared/styles/color_style.dart';
-import '../../../../shared/widgets/custom_button.dart';
-import '../../constants/landing_assets_constant.dart';
-import '../components/auth_bottom_sheet.dart';
+import '../../controllers/landing_controller.dart';
+import '../components/build_auth_form.dart';
+import '../components/build_forgot.dart';
 
 class LandingScreen extends StatelessWidget {
   LandingScreen({super.key});
 
-  final assetsConstant = LandingAssetsConstant();
+  final controller = LandingController.to;
+  final RxBool isLogin = true.obs;
+  final RxBool isForgot = false.obs;
 
   @override
   Widget build(BuildContext context) {
@@ -24,17 +26,20 @@ class LandingScreen extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
+        child: Obx(() {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Text('VoiceTask',
-                  style: TextStyle(
-                    fontSize: 50,
-                    fontWeight: FontWeight.w800,
-                  )),
+              const Text(
+                'VoiceTask',
+                style: TextStyle(
+                  fontSize: 50,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 8),
               const Text(
                 'Convert your voice into tasks instantly and efficiently — perfect for boosting your daily productivity.',
                 textAlign: TextAlign.center,
@@ -43,43 +48,14 @@ class LandingScreen extends StatelessWidget {
                   fontWeight: FontWeight.normal,
                 ),
               ),
-              SizedBox(height: 80.h),
-              buildCustomButton(
-                () => showModalBottomSheet(
-                  backgroundColor: ColorStyle.white,
-                  showDragHandle: true,
-                  context: context,
-                  isScrollControlled: true,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(20)),
-                  ),
-                  builder: (_) => AuthBottomSheet(type: "Login"),
-                ),
-                "Login",
-                ColorStyle.primary,
-                ColorStyle.light,
-              ),
-              // const SizedBox(height: 10),
-              // buildCustomButton(
-              //   () => showModalBottomSheet(
-              //     backgroundColor: ColorStyle.white,
-              //     context: context,
-              //     isScrollControlled: true,
-              //     showDragHandle: true,
-              //     shape: const RoundedRectangleBorder(
-              //       borderRadius:
-              //           BorderRadius.vertical(top: Radius.circular(20)),
-              //     ),
-              //     builder: (_) => AuthBottomSheet(type: "Register"),
-              //   ),
-              //   "Register",
-              //   ColorStyle.light,
-              //   ColorStyle.dark,
-              // ),
+              SizedBox(height: 40.h),
+              if (isForgot.value)
+                buildForgotPasswordForm(context, isForgot)
+              else
+                buildAuthForm(context, isLogin, isForgot),
             ],
-          ),
-        ),
+          );
+        }),
       ),
     );
   }

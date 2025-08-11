@@ -57,13 +57,13 @@ class LandingController extends GetxController {
 
   @override
   void onClose() {
+    super.onClose();
     passwordTextController.removeListener(validatePassword);
-
     emailTextController.dispose();
     passwordTextController.dispose();
     confirmPasswordTextController.dispose();
     usernameTextController.dispose();
-    super.onClose();
+
   }
 
   void validatePassword() {
@@ -202,8 +202,10 @@ class LandingController extends GetxController {
           email: userCredential.user!.email!,
         );
         await _firestoreService.addUser(newUser.toMap());
+        await auth.signOut();
       }
 
+      _clearTextControllers();
       Get.offAllNamed(Routes.landingRoute);
     } on FirebaseAuthException catch (e) {
       String errorMessage;
@@ -251,7 +253,6 @@ class LandingController extends GetxController {
           );
           await _firestoreService.addUser(userModel.toMap());
         }
-        // Clear local data before syncing from Firebase to prevent duplicates
         TaskRepository().deleteAllTasks();
         NoteRepository().deleteAllNotes();
         NoteRepository().syncNotesFromFirebase();

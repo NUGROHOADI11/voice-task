@@ -9,6 +9,7 @@ import '../../../../shared/widgets/custom_button.dart';
 import '../../../../utils/services/hive_service.dart';
 import '../../../landing/controllers/landing_controller.dart';
 import '../../controllers/profile_controller.dart';
+import 'bottom_sheet.dart';
 
 Widget buildHeader(BuildContext context) {
   final ProfileController controller = Get.put(ProfileController());
@@ -126,15 +127,33 @@ void _showProfileDialog(
                             await controller.uploadImage();
                           }
                         },
-                        child: CircleAvatar(
-                          radius: 30.w,
-                          backgroundImage: controller.imageFile.value != null
-                              ? FileImage(controller.imageFile.value!)
-                              : controller.profilePictureUrl.value.isNotEmpty
-                                  ? NetworkImage(
-                                      controller.profilePictureUrl.value)
-                                  : const AssetImage(ImageConstant.person)
-                                      as ImageProvider<Object>,
+                        child: Stack(
+                          children: [
+                            CircleAvatar(
+                              radius: 30.w,
+                              backgroundImage: controller.imageFile.value !=
+                                      null
+                                  ? FileImage(controller.imageFile.value!)
+                                  : controller
+                                          .profilePictureUrl.value.isNotEmpty
+                                      ? NetworkImage(
+                                          controller.profilePictureUrl.value)
+                                      : const AssetImage(ImageConstant.person)
+                                          as ImageProvider<Object>,
+                            ),
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                child: const Icon(
+                                  Icons.edit,
+                                  size: 16,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       SizedBox(width: 16.w),
@@ -175,46 +194,13 @@ void _showProfileDialog(
                                 SizedBox(width: 8.w),
                                 InkWell(
                                   onTap: () {
-                                    if (controller.isEditingUsername.value) {
-                                      Get.defaultDialog(
-                                        title: "Confirm",
-                                        middleText:
-                                            "Are you sure you want to change your username?",
-                                        onConfirm: () async {
-                                          await controller.updateUsername();
-                                          controller.isEditingUsername.value = false;
-                                          controller.usernameFocusNode.unfocus();
-                                          Get.back();
-                                        },
-                                        onCancel: () {
-                                          controller.username.text = controller
-                                                  .currentUser
-                                                  .value
-                                                  ?.username ??
-                                              '';
-                                          controller.isEditingUsername.value = false;
-                                          controller.usernameFocusNode.unfocus();
-                                          Get.back();
-                                        },
-                                      );
-                                    } else {
-                                      controller.isEditingUsername.value = true;
-                                      Future.delayed(
-                                          Duration(milliseconds: 100), () {
-                                        controller.usernameFocusNode
-                                            .requestFocus();
-                                      });
-                                    }
+                                    _showEditNameBottomSheet(controller);
                                   },
                                   borderRadius: BorderRadius.circular(20),
                                   child: Padding(
                                     padding: const EdgeInsets.all(4.0),
-                                    child: Icon(
-                                        controller.isEditingUsername.value
-                                            ? Icons.check
-                                            : Icons.edit,
-                                        size: 20.w,
-                                        color: Colors.grey[700]),
+                                    child: Icon(Icons.edit,
+                                        size: 20.w, color: Colors.grey[700]),
                                   ),
                                 ),
                               ],
@@ -280,5 +266,26 @@ void _showLogoutConfirmation(BuildContext context) {
         ),
       ],
     ),
+  );
+}
+
+void _showEditNameBottomSheet(ProfileController controller) {
+  customBottomSheet(
+    title: 'Change Username'.tr,
+    initialValue: controller.currentUser.value?.username ?? '',
+    hintText: 'Enter your new username'.tr,
+    validator: (value) {
+      if (value == null || value.trim().isEmpty) {
+        return 'Username cannot be empty'.tr;
+      }
+      if (value.length < 3) {
+        return 'Username must be at least 3 characters'.tr;
+      }
+      return null;
+    },
+    onSave: (newName) async {
+      controller.username.text = newName;
+      await controller.updateUsername();
+    },
   );
 }

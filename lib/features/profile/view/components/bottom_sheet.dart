@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
+import '../../../../shared/styles/color_style.dart';
+
 void customBottomSheet({
   required String title,
   required String initialValue,
@@ -16,18 +18,20 @@ void customBottomSheet({
   final formKey = GlobalKey<FormState>();
 
   showModalBottomSheet(
-    showDragHandle: true,
     context: Get.context!,
     isScrollControlled: true,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-    ),
+    backgroundColor: Colors.transparent, // transparent outside
     builder: (context) {
-      return Padding(
+      return Container(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
-          left: 20,
-          right: 20,
+          left: 16,
+          right: 16,
+          top: 16,
+        ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Form(
           key: formKey,
@@ -35,10 +39,38 @@ void customBottomSheet({
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title,
-                  style:
-                      TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),
-              SizedBox(height: 16.h),
+              // Drag handle
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Title & Close button
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Get.back(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Input
               TextFormField(
                 controller: controller,
                 maxLines: maxLines,
@@ -51,13 +83,27 @@ void customBottomSheet({
                   ),
                 ),
               ),
-              SizedBox(height: 20.h),
+              const SizedBox(height: 20),
+
+              // Action buttons
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Get.back(),
-                      child: Text("Cancel".tr),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Get.back();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: ColorStyle.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: Text(
+                        'Cancel'.tr,
+                        style: const TextStyle(color: Colors.white),
+                      ),
                     ),
                   ),
                   SizedBox(width: 12.w),
@@ -69,12 +115,22 @@ void customBottomSheet({
                           Get.back();
                         }
                       },
-                      child: Text("Save".tr),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: ColorStyle.accent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: Text(
+                        'Save'.tr,
+                        style: const TextStyle(color: Colors.black),
+                      ),
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 24.h),
+              const SizedBox(height: 16),
             ],
           ),
         ),

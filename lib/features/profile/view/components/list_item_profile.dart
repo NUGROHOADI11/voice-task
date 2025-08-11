@@ -379,34 +379,35 @@ void _showPinBottomSheet(BuildContext context) {
                   ],
                 ),
                 const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      final currentPin = getCurrentController().text;
-                      if (currentPin.length == 6) {
-                        handleCompletion(currentPin);
-                      } else {
-                        Get.snackbar(
-                          'Error',
-                          'Please enter a valid PIN'.tr,
-                          snackPosition: SnackPosition.BOTTOM,
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: ColorStyle.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                if (currentStep == 2)
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        final currentPin = getCurrentController().text;
+                        if (currentPin.length == 6) {
+                          handleCompletion(currentPin);
+                        } else {
+                          Get.snackbar(
+                            'Error',
+                            'Please enter a valid PIN'.tr,
+                            snackPosition: SnackPosition.BOTTOM,
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: ColorStyle.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: Text(
-                      currentStep == 2 ? 'Confirm'.tr : 'Next'.tr,
-                      style: const TextStyle(color: Colors.white),
+                      child: Text(
+                        'Confirm'.tr,
+                        style: const TextStyle(color: Colors.white),
+                      ),
                     ),
                   ),
-                ),
                 const SizedBox(height: 16),
               ],
             ),
