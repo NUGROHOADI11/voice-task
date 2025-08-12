@@ -1,38 +1,42 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../utils/services/notification_service.dart';
+import '../../note/sub_features/add_note/models/note_model.dart';
 import '../../task/models/task_model.dart';
 import '../../task/repositories/task_repository.dart';
+import '../../note/repositories/note_repository.dart';
 
 class DashboardController extends GetxController {
   static DashboardController get to => Get.find();
 
   final isSearching = false.obs;
+  final searchQuery = ''.obs;
+
   final selectedDateIndex = RxnInt();
-  final searchController = TextEditingController();
   final selectedDate = Rxn<DateTime>();
+
   final activeTasks = <Task>[].obs;
+  final allNotes = <Note>[].obs;
+
   final isLoading = true.obs;
   final errorMessage = ''.obs;
 
   final TaskRepository _taskRepo = TaskRepository();
+  final NoteRepository _noteRepo = NoteRepository();
+
+  final searchFilter = 'All'.obs; // 'All', 'Tasks', or 'Notes'
+
 
   @override
   void onInit() {
     super.onInit();
     _loadTasks();
-  }
-
-  @override
-  void onClose() {
-    searchController.dispose();
-    super.onClose();
+    _loadNotes();
   }
 
   void toggleSearch() {
     isSearching.value = !isSearching.value;
     if (!isSearching.value) {
-      searchController.clear();
+      searchQuery.value = '';
     }
   }
 
@@ -50,13 +54,45 @@ class DashboardController extends GetxController {
     selectedDate.value = null;
   }
 
+  List<Task> get filteredTasks {
+    final query = searchQuery.value.trim().toLowerCase();
+    if (query.isEmpty) return activeTasks;
+    return activeTasks.where((task) {
+      final title = task.title.toLowerCase();
+      final desc = task.description.toLowerCase();
+      return title.contains(query) || desc.contains(query);
+    }).toList();
+  }
+
+  List<Note> get filteredNotes {
+    final query = searchQuery.value.trim().toLowerCase();
+    if (query.isEmpty) return allNotes;
+    return allNotes.where((note) {
+      final title = note.title.toLowerCase();
+      final content = note.content.toLowerCase();
+      return title.contains(query) || content.contains(query);
+    }).toList();
+  }
+
   void _loadTasks() {
     try {
       final allTasks = _taskRepo.getAllTasks();
+      activeTasks.assignAll(allTasks);
       isLoading.value = false;
       _setNotification(allTasks);
     } catch (e) {
       errorMessage.value = 'Failed to load tasks: $e';
+      isLoading.value = false;
+    }
+  }
+
+  void _loadNotes() {
+    try {
+      final allNotes = _noteRepo.getAllNotes();
+      this.allNotes.assignAll(allNotes);
+      isLoading.value = false;
+    } catch (e) {
+      errorMessage.value = 'Failed to load notes: $e';
       isLoading.value = false;
     }
   }
