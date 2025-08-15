@@ -105,14 +105,14 @@ List<Widget> buildListItem(context) {
                     (value) => Get.snackbar(
                       'Success',
                       'Birthday updated successfully'.tr,
-                      snackPosition: SnackPosition.BOTTOM,
+                      snackPosition: SnackPosition.TOP,
                     ),
                   )
                   .catchError(
                     (error) => Get.snackbar(
                       'Error',
                       'Failed to update birthday: $error',
-                      snackPosition: SnackPosition.BOTTOM,
+                      snackPosition: SnackPosition.TOP,
                     ),
                   );
             }
@@ -161,7 +161,7 @@ Future<void> _launchHelpUrl() async {
     Get.snackbar(
       'Error',
       'Could not open the page. Please try again later.',
-      snackPosition: SnackPosition.BOTTOM,
+      snackPosition: SnackPosition.TOP,
     );
   }
 }
@@ -251,7 +251,7 @@ void _showPinBottomSheet(BuildContext context) {
                   Get.snackbar(
                     'Error',
                     'New PIN and Confirm PIN do not match'.tr,
-                    snackPosition: SnackPosition.BOTTOM,
+                    snackPosition: SnackPosition.TOP,
                   );
 
                   setState(() {
@@ -285,7 +285,7 @@ void _showPinBottomSheet(BuildContext context) {
                 Get.snackbar(
                   'Error',
                   'Old PIN is incorrect'.tr,
-                  snackPosition: SnackPosition.BOTTOM,
+                  snackPosition: SnackPosition.TOP,
                 );
                 oldPinController.clear();
               }
@@ -391,7 +391,7 @@ void _showPinBottomSheet(BuildContext context) {
                           Get.snackbar(
                             'Error',
                             'Please enter a valid PIN'.tr,
-                            snackPosition: SnackPosition.BOTTOM,
+                            snackPosition: SnackPosition.TOP,
                           );
                         }
                       },

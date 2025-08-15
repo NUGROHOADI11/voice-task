@@ -48,13 +48,13 @@ class NoteAddNoteController extends GetxController {
   Future<void> saveNote() async {
     if (titleController.text.isEmpty) {
       Get.snackbar("Error", "Title cannot be empty.",
-          snackPosition: SnackPosition.BOTTOM);
+          snackPosition: SnackPosition.TOP);
       return;
     }
 
     if (quillController.document.isEmpty()) {
       Get.snackbar("Error", "Content cannot be empty.",
-          snackPosition: SnackPosition.BOTTOM);
+          snackPosition: SnackPosition.TOP);
       return;
     }
 
@@ -73,10 +73,10 @@ class NoteAddNoteController extends GetxController {
       Get.back();
 
       Get.snackbar("Success", "Note added successfully!",
-          snackPosition: SnackPosition.BOTTOM);
+          snackPosition: SnackPosition.TOP);
     } catch (e) {
       Get.snackbar("Error", "Failed to add note: ${e.toString()}",
-          snackPosition: SnackPosition.BOTTOM);
+          snackPosition: SnackPosition.TOP);
     } finally {
       isLoading.value = false;
     }

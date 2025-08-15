@@ -124,7 +124,7 @@ class NotificationService {
       Get.snackbar(
         "Permission Denied",
         "Please allow the app to schedule notifications.",
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         duration: const Duration(seconds: 3),
       );
     }

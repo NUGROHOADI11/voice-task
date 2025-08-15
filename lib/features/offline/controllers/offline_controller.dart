@@ -47,12 +47,12 @@ class OfflineController extends GetxController {
       } else {
         Get.snackbar("Error", "No internet connection",
             colorText: Colors.white,
-            snackPosition: SnackPosition.BOTTOM,
+            snackPosition: SnackPosition.TOP,
             backgroundColor: Colors.red);
       }
     } catch (e) {
       Get.snackbar("Error", "Failed to refresh connection: $e",
-          snackPosition: SnackPosition.BOTTOM);
+          snackPosition: SnackPosition.TOP);
     } finally {
       isLoading.value = false;
     }

@@ -58,7 +58,7 @@ class NoteController extends GetxController {
     } catch (e) {
       log("Error toggling pin: $e");
       Get.snackbar("Error", "Failed to toggle pin: $e",
-          snackPosition: SnackPosition.BOTTOM);
+          snackPosition: SnackPosition.TOP);
     }
   }
 

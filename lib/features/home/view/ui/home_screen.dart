@@ -41,7 +41,7 @@ class HomeScreen extends StatelessWidget {
         child: GetX<GlobalController>(
           builder: (globalController) {
             final isOnline = globalController.isConnected.value;
-      
+
             return Stack(
               children: [
                 Obx(() => _screens[homeController.currentIndex.value]),
@@ -61,7 +61,7 @@ class HomeScreen extends StatelessWidget {
                       Get.snackbar(
                         'No Internet Connection',
                         'Please check your internet connection and try again.',
-                        snackPosition: SnackPosition.BOTTOM,
+                        snackPosition: SnackPosition.TOP,
                         backgroundColor: ColorStyle.danger,
                         colorText: Colors.white,
                       );

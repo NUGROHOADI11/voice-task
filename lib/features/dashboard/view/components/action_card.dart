@@ -61,7 +61,7 @@ Widget buildActionCard(context) {
                       Get.snackbar(
                         'Sync Success'.tr,
                         'All tasks and notes synced to cloud successfully.'.tr,
-                        snackPosition: SnackPosition.BOTTOM,
+                        snackPosition: SnackPosition.TOP,
                         backgroundColor: Colors.green,
                         colorText: Colors.white,
                       );
@@ -71,7 +71,7 @@ Widget buildActionCard(context) {
                   Get.snackbar(
                     'No Internet Connection'.tr,
                     'Please check your internet connection and try again.'.tr,
-                    snackPosition: SnackPosition.BOTTOM,
+                    snackPosition: SnackPosition.TOP,
                     backgroundColor: Colors.red,
                     colorText: Colors.white,
                   );
@@ -80,7 +80,7 @@ Widget buildActionCard(context) {
                 Get.snackbar(
                   'Sync Failed'.tr,
                   'Failed to sync tasks: ${e.toString()}'.tr,
-                  snackPosition: SnackPosition.BOTTOM,
+                  snackPosition: SnackPosition.TOP,
                   backgroundColor: Colors.red,
                   colorText: Colors.white,
                 );
@@ -151,9 +151,9 @@ Future<void> _authenticateUser(context) async {
       Get.snackbar(
         "Authentication Failed".tr,
         "Please try again or use PIN".tr,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
-      
+
       if (ProfileController.to.pin.value.isNotEmpty) {
         _showVerificationModal(context);
       }
@@ -164,7 +164,7 @@ Future<void> _authenticateUser(context) async {
     Get.snackbar(
       "Error".tr,
       "Biometric authentication unavailable. Using PIN instead.".tr,
-      snackPosition: SnackPosition.BOTTOM,
+      snackPosition: SnackPosition.TOP,
     );
 
     if (ProfileController.to.pin.value.isNotEmpty) {
@@ -172,7 +172,6 @@ Future<void> _authenticateUser(context) async {
     }
   }
 }
-
 
 void _showVerificationModal(BuildContext context) {
   showDialog(
@@ -294,7 +293,7 @@ void _showPinVerificationDialog(BuildContext context) {
                               Get.snackbar(
                                 "Error".tr,
                                 "Wrong PIN code".tr,
-                                snackPosition: SnackPosition.BOTTOM,
+                                snackPosition: SnackPosition.TOP,
                               );
                             }
                           }

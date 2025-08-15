@@ -90,7 +90,7 @@ class ProfileController extends GetxController {
       Get.snackbar(
         "Error",
         "User not logged in.",
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         backgroundColor: ColorStyle.warning,
         colorText: ColorStyle.white,
       );
@@ -121,7 +121,7 @@ class ProfileController extends GetxController {
         Get.snackbar(
           "Error",
           "User data not found.",
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
           backgroundColor: ColorStyle.warning,
           colorText: ColorStyle.white,
         );
@@ -131,7 +131,7 @@ class ProfileController extends GetxController {
       Get.snackbar(
         "Error",
         "Failed to fetch user data: $e",
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         backgroundColor: ColorStyle.danger,
         colorText: ColorStyle.white,
       );
@@ -165,7 +165,7 @@ class ProfileController extends GetxController {
       Get.snackbar(
         'error'.tr,
         'failed_to_pick_image'.tr,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     }
   }
@@ -206,7 +206,7 @@ class ProfileController extends GetxController {
       Get.snackbar(
         'error'.tr,
         'no_image_selected'.tr,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
       return;
     }
@@ -214,7 +214,9 @@ class ProfileController extends GetxController {
     try {
       isLoading.value = true;
       final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final response = await supabase.storage.from(dotenv.env['SUPABASE_BUCKET_NAME']!).uploadBinary(
+      final response = await supabase.storage
+          .from(dotenv.env['SUPABASE_BUCKET_NAME']!)
+          .uploadBinary(
             'image_url/$fileName',
             await imageFile.value!.readAsBytes(),
             fileOptions: FileOptions(contentType: 'image/jpeg'),
@@ -226,7 +228,9 @@ class ProfileController extends GetxController {
         {'photoUrl': imageUrl.value},
       );
 
-      imageUrl.value = supabase.storage.from(dotenv.env['SUPABASE_BUCKET_NAME']!).getPublicUrl('image_url/$fileName');
+      imageUrl.value = supabase.storage
+          .from(dotenv.env['SUPABASE_BUCKET_NAME']!)
+          .getPublicUrl('image_url/$fileName');
       profileImageUrl.value = imageUrl.value;
 
       if (currentUser.value != null) {
@@ -246,7 +250,7 @@ class ProfileController extends GetxController {
       Get.snackbar(
         'error'.tr,
         'failed_to_upload_image'.tr,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } finally {
       isLoading.value = false;
@@ -261,7 +265,7 @@ class ProfileController extends GetxController {
       Get.snackbar(
         "Error",
         "No user data available to update.",
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         backgroundColor: ColorStyle.warning,
         colorText: ColorStyle.white,
       );
@@ -284,7 +288,7 @@ class ProfileController extends GetxController {
       Get.snackbar(
         "Error",
         "Failed to update username: $e",
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         backgroundColor: ColorStyle.danger,
         colorText: ColorStyle.white,
       );
@@ -299,7 +303,7 @@ class ProfileController extends GetxController {
       Get.snackbar(
         "Error",
         "No user data available to update.",
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         backgroundColor: ColorStyle.warning,
         colorText: ColorStyle.white,
       );
@@ -322,7 +326,7 @@ class ProfileController extends GetxController {
       Get.snackbar(
         "Error",
         "Failed to update bio: $e",
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         backgroundColor: ColorStyle.danger,
         colorText: ColorStyle.white,
       );
@@ -337,7 +341,7 @@ class ProfileController extends GetxController {
       Get.snackbar(
         "Error",
         "User not logged in.",
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         backgroundColor: ColorStyle.warning,
         colorText: ColorStyle.white,
       );
@@ -357,7 +361,7 @@ class ProfileController extends GetxController {
       Get.snackbar(
         "Error",
         "Failed to update email: $e",
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         backgroundColor: ColorStyle.danger,
         colorText: ColorStyle.white,
       );
@@ -390,14 +394,14 @@ class ProfileController extends GetxController {
       Get.snackbar(
         'Success',
         'PIN updated successfully'.tr,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } catch (e) {
       log("Error updating PIN: $e");
       Get.snackbar(
         'Error',
         'Failed to update PIN: $e'.tr,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } finally {
       isLoading.value = false;
@@ -410,7 +414,7 @@ class ProfileController extends GetxController {
       Get.snackbar(
         "Error",
         "No user data available to update.",
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         backgroundColor: ColorStyle.warning,
         colorText: ColorStyle.white,
       );
@@ -433,7 +437,7 @@ class ProfileController extends GetxController {
       Get.snackbar(
         "Error",
         "Failed to update phone number: $e",
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         backgroundColor: ColorStyle.danger,
         colorText: ColorStyle.white,
       );

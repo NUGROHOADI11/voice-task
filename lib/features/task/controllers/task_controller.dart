@@ -72,7 +72,7 @@ class TaskController extends GetxController {
       Get.snackbar(
         task.isHidden ? 'Task Hidden'.tr : 'Task Unhidden'.tr,
         '"${task.title}" has been ${task.isHidden ? 'hidden' : 'unhidden'}'.tr,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         backgroundColor: task.isHidden ? Colors.orangeAccent : Colors.green,
         colorText: Colors.white,
       );
@@ -80,7 +80,7 @@ class TaskController extends GetxController {
       Get.snackbar(
         'Error'.tr,
         'Failed to update task: ${e.toString()}'.tr,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
@@ -111,7 +111,7 @@ class TaskController extends GetxController {
       Get.snackbar(
         'Error'.tr,
         'Failed to update pin status: ${e.toString()}'.tr,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
       log('Error updating pin status: $e');
     }

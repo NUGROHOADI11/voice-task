@@ -55,7 +55,7 @@ class DetailTaskController extends GetxController {
       Get.snackbar(
         "Error",
         "Failed to fetch task details: ${e.toString()}",
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
@@ -145,7 +145,7 @@ class DetailTaskController extends GetxController {
       Get.snackbar(
         "Success",
         "Task updated successfully",
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
@@ -155,7 +155,7 @@ class DetailTaskController extends GetxController {
       Get.snackbar(
         "Error",
         "Failed to update task: ${e.toString()}",
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );

@@ -5,6 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../../../shared/widgets/custom_alert.dart';
 import '../../note/repositories/note_repository.dart';
 import '../../../configs/routes/route.dart';
 import '../../../utils/services/firestore_service.dart';
@@ -318,11 +319,6 @@ class LandingController extends GetxController {
   }
 
   void _showErrorDialog(String message) {
-    Get.defaultDialog(
-      title: "Error".tr,
-      middleText: message.tr,
-      textConfirm: "OK".tr,
-      onConfirm: () => Get.back(),
-    );
+    CustomAlert.warning(message);
   }
 }

@@ -20,14 +20,15 @@ void customBottomSheet({
   showModalBottomSheet(
     context: Get.context!,
     isScrollControlled: true,
-    backgroundColor: Colors.transparent, // transparent outside
+    showDragHandle: true,
+
+    backgroundColor: Colors.white, 
     builder: (context) {
       return Container(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
           left: 16,
           right: 16,
-          top: 16,
         ),
         decoration: const BoxDecoration(
           color: Colors.white,
@@ -39,18 +40,6 @@ void customBottomSheet({
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Drag handle
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Title & Close button
               Row(
                 children: [
                   Expanded(
@@ -70,7 +59,6 @@ void customBottomSheet({
               ),
               const SizedBox(height: 16),
 
-              // Input
               TextFormField(
                 controller: controller,
                 maxLines: maxLines,
@@ -85,7 +73,6 @@ void customBottomSheet({
               ),
               const SizedBox(height: 20),
 
-              // Action buttons
               Row(
                 children: [
                   Expanded(

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../../constants/core/assets/icon_constant.dart';
 import '../../../../shared/styles/color_style.dart';
+import '../../../../shared/widgets/custom_alert.dart';
 import '../../controllers/landing_controller.dart';
 import 'build_divider.dart';
 import 'build_input.dart';
@@ -85,12 +86,7 @@ Widget buildAuthForm(BuildContext context, RxBool isLogin, RxBool isForgot) {
                             controller.passwordTextController.text.trim(),
                           );
                         } else {
-                          Get.snackbar(
-                            'Error',
-                            'Please fill all fields',
-                            backgroundColor: ColorStyle.warning,
-                            snackPosition: SnackPosition.TOP,
-                          );
+                          CustomAlert.warning('Please fill all fields');
                         }
                       } else {
                         if (controller.isSignupFormValid) {
@@ -101,12 +97,7 @@ Widget buildAuthForm(BuildContext context, RxBool isLogin, RxBool isForgot) {
                                 .trim(),
                           );
                         } else {
-                          Get.snackbar(
-                            'Error',
-                            'Please fill all fields',
-                            backgroundColor: ColorStyle.warning,
-                            snackPosition: SnackPosition.TOP,
-                          );
+                          CustomAlert.warning('Please fill all fields');
                         }
                       }
                     },

@@ -5,6 +5,6 @@ import '../controllers/landing_controller.dart';
 class LandingBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut(() => LandingController(), fenix: true);
+    Get.put(LandingController(), permanent: true);
   }
 }

@@ -99,7 +99,7 @@ void _showProfileDialog(
                 onPressed: () => Navigator.pop(context),
               ),
               Text(
-                'VoiceTask',
+                'Profile'.tr,
                 style: TextStyle(
                   fontSize: 18.sp,
                   fontWeight: FontWeight.bold,
@@ -146,6 +146,10 @@ void _showProfileDialog(
                               right: 0,
                               child: Container(
                                 padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: ColorStyle.light,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                                 child: const Icon(
                                   Icons.edit,
                                   size: 16,

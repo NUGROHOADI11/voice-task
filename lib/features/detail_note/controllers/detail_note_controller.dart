@@ -54,7 +54,7 @@ class DetailNoteController extends GetxController {
         note.value = localNote;
       } else {
         Get.snackbar("Offline", "Note not found locally.",
-            snackPosition: SnackPosition.BOTTOM);
+            snackPosition: SnackPosition.TOP);
         return;
       }
 
@@ -68,7 +68,7 @@ class DetailNoteController extends GetxController {
       date = note.value?.updatedAt ?? note.value!.createdAt;
     } catch (e) {
       Get.snackbar("Error", "Failed to fetch note: ${e.toString()}",
-          snackPosition: SnackPosition.BOTTOM);
+          snackPosition: SnackPosition.TOP);
     } finally {
       isLoading.value = false;
     }
@@ -96,10 +96,10 @@ class DetailNoteController extends GetxController {
 
       Get.back();
       Get.snackbar("Success", "Note updated successfully!",
-          snackPosition: SnackPosition.BOTTOM);
+          snackPosition: SnackPosition.TOP);
     } catch (e) {
       Get.snackbar("Error", "Failed to update note: ${e.toString()}",
-          snackPosition: SnackPosition.BOTTOM);
+          snackPosition: SnackPosition.TOP);
     } finally {
       isLoading.value = false;
     }
@@ -127,10 +127,10 @@ class DetailNoteController extends GetxController {
 
       Get.back();
       Get.snackbar("Success", "Note deleted successfully!",
-          snackPosition: SnackPosition.BOTTOM);
+          snackPosition: SnackPosition.TOP);
     } catch (e) {
       Get.snackbar("Error", "Failed to delete: ${e.toString()}",
-          snackPosition: SnackPosition.BOTTOM);
+          snackPosition: SnackPosition.TOP);
       log("Error deleting note: $e");
     } finally {
       isLoading.value = false;
