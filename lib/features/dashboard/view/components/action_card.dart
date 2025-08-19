@@ -124,20 +124,36 @@ Widget _buildCircleIcon(IconData iconData, Callback onTap,
   );
 }
 
-Future<void> _authenticateUser(context) async {
+Future<void> _authenticateUser(BuildContext context) async {
   final localAuth = LocalAuthentication();
+  final hasPin = ProfileController.to.pin.value.isNotEmpty;
+
+  bool biometricsAvailable = false;
 
   try {
-    final canCheckBiometrics = await localAuth.canCheckBiometrics;
     final isDeviceSupported = await localAuth.isDeviceSupported();
+    final canCheckBiometrics = await localAuth.canCheckBiometrics;
+    final enrolled = await localAuth.getAvailableBiometrics();
+    biometricsAvailable =
+        isDeviceSupported && canCheckBiometrics && enrolled.isNotEmpty;
+  } catch (e) {
+    biometricsAvailable = false;
+    log("Biometric capability check failed: $e");
+  }
+  if (!context.mounted) return;
 
-    if (!isDeviceSupported || !canCheckBiometrics) {
-      _showVerificationModal(context);
-      return;
+  if (!biometricsAvailable) {
+    if (hasPin) {
+      _showPinVerificationDialog(context);
+    } else {
+      _showSetPinFirstDialog(context);
     }
+    return;
+  }
 
+  try {
     final didAuthenticate = await localAuth.authenticate(
-      localizedReason: 'Authenticate to view hidden tasks',
+      localizedReason: 'Authenticate to view hidden tasks'.tr,
       options: const AuthenticationOptions(
         biometricOnly: true,
         useErrorDialogs: true,
@@ -147,33 +163,76 @@ Future<void> _authenticateUser(context) async {
 
     if (didAuthenticate) {
       Get.toNamed(Routes.hiddenRoute);
-    } else {
-      Get.snackbar(
-        "Authentication Failed".tr,
-        "Please try again or use PIN".tr,
-        snackPosition: SnackPosition.TOP,
-      );
+      return;
+    }
 
-      if (ProfileController.to.pin.value.isNotEmpty) {
-        _showVerificationModal(context);
+    if (!context.mounted) return;
+
+    if (biometricsAvailable) {
+      _showVerificationModal(context);
+    } else {
+      if (hasPin) {
+        _showPinVerificationDialog(context);
+      } else {
+        _showSetPinFirstDialog(context);
       }
     }
   } catch (e) {
+    if (!context.mounted) return;
     log("Authentication error: $e");
 
-    Get.snackbar(
-      "Error".tr,
-      "Biometric authentication unavailable. Using PIN instead.".tr,
-      snackPosition: SnackPosition.TOP,
-    );
-
-    if (ProfileController.to.pin.value.isNotEmpty) {
-      _showVerificationModal(context);
+    if (hasPin) {
+      _showPinVerificationDialog(context);
+    } else {
+      _showSetPinFirstDialog(context);
     }
   }
 }
 
+void _showSetPinFirstDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (context) => Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 20.w),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "PIN Required".tr,
+              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              "Please set your PIN first to access hidden tasks in the Profile page."
+                  .tr,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey, fontSize: 14.sp),
+            ),
+            SizedBox(height: 16.h),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                "OK".tr,
+                style: TextStyle(
+                  color: ColorStyle.primary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14.sp,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
 void _showVerificationModal(BuildContext context) {
+  final hasPin = ProfileController.to.pin.value.isNotEmpty;
+
   showDialog(
     context: context,
     barrierDismissible: true,
@@ -190,7 +249,7 @@ void _showVerificationModal(BuildContext context) {
             ),
             SizedBox(height: 4.h),
             Text(
-              "Finger Print".tr,
+              "Fingerprint".tr,
               style: TextStyle(color: Colors.grey, fontSize: 14.sp),
             ),
             SizedBox(height: 24.h),
@@ -203,33 +262,41 @@ void _showVerificationModal(BuildContext context) {
                   size: 100.w, color: ColorStyle.primary),
             ),
             SizedBox(height: 16.h),
-            Row(
-              children: [
-                const Expanded(child: Divider()),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.w),
-                  child: Text(
-                    "or".tr,
-                    style: TextStyle(color: Colors.grey, fontSize: 14.sp),
+            if (hasPin) ...[
+              Row(
+                children: [
+                  const Expanded(child: Divider()),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8.w),
+                    child: Text("or".tr,
+                        style: TextStyle(color: Colors.grey, fontSize: 14.sp)),
+                  ),
+                  const Expanded(child: Divider()),
+                ],
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _showPinVerificationDialog(context);
+                },
+                child: Text(
+                  "Verification Using PIN".tr,
+                  style: TextStyle(
+                    color: ColorStyle.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14.sp,
                   ),
                 ),
-                const Expanded(child: Divider()),
-              ],
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _showPinVerificationDialog(context);
-              },
-              child: Text(
-                "Verification Using PIN".tr,
-                style: TextStyle(
-                  color: ColorStyle.primary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14.sp,
-                ),
               ),
-            ),
+            ] else ...[
+              SizedBox(height: 8.h),
+              Text(
+                "PIN not set. Please set your PIN first in the Profile page."
+                    .tr,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey, fontSize: 14.sp),
+              ),
+            ],
           ],
         ),
       ),

@@ -60,7 +60,7 @@ class DetailNoteScreen extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
-                color: ColorStyle.grey,
+                color: ColorStyle.dark,
               ),
             ),
             TextFormField(

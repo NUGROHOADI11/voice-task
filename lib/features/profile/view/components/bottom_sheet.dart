@@ -20,19 +20,13 @@ void customBottomSheet({
   showModalBottomSheet(
     context: Get.context!,
     isScrollControlled: true,
-    showDragHandle: true,
-
-    backgroundColor: Colors.white, 
+    backgroundColor: Colors.white,
     builder: (context) {
-      return Container(
+      return Padding(
         padding: EdgeInsets.only(
+          left: 16.0,
+          right: 16.0,
           bottom: MediaQuery.of(context).viewInsets.bottom,
-          left: 16,
-          right: 16,
-        ),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Form(
           key: formKey,
@@ -40,6 +34,18 @@ void customBottomSheet({
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.only(top: 16.0, bottom: 10.0),
+                  height: 5,
+                  width: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+
               Row(
                 children: [
                   Expanded(
@@ -57,8 +63,7 @@ void customBottomSheet({
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-
+              const SizedBox(height: 8),
               TextFormField(
                 controller: controller,
                 maxLines: maxLines,
@@ -72,7 +77,6 @@ void customBottomSheet({
                 ),
               ),
               const SizedBox(height: 20),
-
               Row(
                 children: [
                   Expanded(
