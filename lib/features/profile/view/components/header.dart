@@ -14,30 +14,8 @@ import 'bottom_sheet.dart';
 Widget buildHeader(BuildContext context) {
   final ProfileController controller = Get.put(ProfileController());
 
-  final Map<String, String>? addressData =
-      LocalStorageService.getUserLocation();
-  String locationText;
-
-  if (addressData != null) {
-    final String city = addressData['city'] ?? '';
-    final String province = addressData['province'] ?? '';
-
-    if (city.isNotEmpty &&
-        city != 'Unknown' &&
-        province.isNotEmpty &&
-        province != 'Unknown') {
-      locationText = '$city, $province';
-    } else if (city.isNotEmpty && city != 'Unknown') {
-      locationText = city;
-    } else {
-      locationText = 'Location not available'.tr;
-    }
-  } else {
-    locationText = 'Location not available'.tr;
-  }
-
   return GestureDetector(
-    onTap: () => _showProfileDialog(context, controller, locationText),
+    onTap: () => _showProfileDialog(context, controller),
     child: Obx(
       () => Row(
         children: [
@@ -63,11 +41,11 @@ Widget buildHeader(BuildContext context) {
                   overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 4.h),
-                Text(
-                  locationText,
-                  style: TextStyle(color: Colors.grey[600]),
-                  overflow: TextOverflow.ellipsis,
-                ),
+                Obx(() => Text(
+                      controller.locationText.value,
+                      style: TextStyle(color: Colors.grey[600]),
+                      overflow: TextOverflow.ellipsis,
+                    )),
               ],
             ),
           ),
@@ -77,8 +55,7 @@ Widget buildHeader(BuildContext context) {
   );
 }
 
-void _showProfileDialog(
-    BuildContext context, ProfileController controller, String locationText) {
+void _showProfileDialog(BuildContext context, ProfileController controller) {
   showDialog(
     context: context,
     builder: (context) => Dialog(
@@ -92,20 +69,20 @@ void _showProfileDialog(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
                 icon: Icon(Icons.close, size: 24.w),
                 onPressed: () => Navigator.pop(context),
               ),
-              Text(
-                'Profile'.tr,
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  'Profile'.tr,
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-              SizedBox(width: 48.w),
             ],
           ),
           Obx(
@@ -162,13 +139,14 @@ void _showProfileDialog(
                       ),
                       SizedBox(width: 16.w),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Row(
                           children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: controller.isEditingUsername.value
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  controller.isEditingUsername.value
                                       ? TextField(
                                           controller: controller.username,
                                           focusNode:
@@ -194,35 +172,32 @@ void _showProfileDialog(
                                           ),
                                           overflow: TextOverflow.ellipsis,
                                         ),
-                                ),
-                                SizedBox(width: 8.w),
-                                InkWell(
-                                  onTap: () {
-                                    _showEditNameBottomSheet(controller);
-                                  },
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(4.0),
-                                    child: Icon(Icons.edit,
-                                        size: 20.w, color: Colors.grey[700]),
+                                  Row(
+                                    children: [
+                                      Icon(Icons.location_on,
+                                          size: 16.w, color: Colors.grey),
+                                      SizedBox(width: 4.w),
+                                      Obx(() => Text(
+                                            controller.locationText.value,
+                                            style: TextStyle(
+                                                color: Colors.grey[600]),
+                                            overflow: TextOverflow.ellipsis,
+                                          ))
+                                    ],
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                            SizedBox(height: 4.h),
-                            Row(
-                              children: [
-                                Icon(Icons.location_on,
-                                    size: 16.w, color: Colors.grey),
-                                SizedBox(width: 4.w),
-                                Text(
-                                  locationText,
-                                  style: TextStyle(
-                                    fontSize: 14.sp,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ],
+                            InkWell(
+                              onTap: () {
+                                _showEditOptionBottomSheet(controller);
+                              },
+                              borderRadius: BorderRadius.circular(20),
+                              child: Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: Icon(Icons.edit,
+                                    size: 16.w, color: Colors.grey[700]),
+                              ),
                             ),
                           ],
                         ),
@@ -273,6 +248,38 @@ void _showLogoutConfirmation(BuildContext context) {
   );
 }
 
+void _showEditOptionBottomSheet(ProfileController controller) {
+  Get.bottomSheet(
+    Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Wrap(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.person),
+            title: Text('Edit Name'.tr),
+            onTap: () {
+              Navigator.pop(Get.context!);
+              _showEditNameBottomSheet(controller);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.location_on),
+            title: Text('Edit Address'.tr),
+            onTap: () {
+              Navigator.pop(Get.context!);
+              _showChangeLocationBottomSheet(controller);
+            },
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 void _showEditNameBottomSheet(ProfileController controller) {
   customBottomSheet(
     title: 'Change Username'.tr,
@@ -290,6 +297,34 @@ void _showEditNameBottomSheet(ProfileController controller) {
     onSave: (newName) async {
       controller.username.text = newName;
       await controller.updateUsername();
+    },
+  );
+}
+
+void _showChangeLocationBottomSheet(ProfileController controller) {
+  customBottomSheet(
+    title: 'Change Location'.tr,
+    initialValue: '',
+    hintText: 'Enter your city, province'.tr,
+    validator: (value) {
+      if (value == null || value.trim().isEmpty) {
+        return 'Location cannot be empty'.tr;
+      }
+      return null;
+    },
+    onSave: (newLocation) async {
+      final parts = newLocation.split(',');
+      final city = parts.isNotEmpty ? parts[0].trim() : 'Unknown';
+      final province = parts.length > 1 ? parts[1].trim() : 'Unknown';
+
+      await LocalStorageService.saveUserLocation(
+        city: city,
+        province: province,
+        country: '',
+      );
+
+      controller.loadLocation();
+      Get.snackbar("Success", "Location updated successfully");
     },
   );
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../utils/services/notification_service.dart';
 import '../../note/sub_features/add_note/models/note_model.dart';
@@ -22,9 +23,9 @@ class DashboardController extends GetxController {
 
   final TaskRepository _taskRepo = TaskRepository();
   final NoteRepository _noteRepo = NoteRepository();
+  final scrollController = ScrollController();
 
   final searchFilter = 'All'.obs; // 'All', 'Tasks', or 'Notes'
-
 
   @override
   void onInit() {
@@ -52,6 +53,20 @@ class DashboardController extends GetxController {
   void clearSelectedDate() {
     selectedDateIndex.value = null;
     selectedDate.value = null;
+  }
+
+  void scrollToCenter(
+      ScrollController controller, int index, double itemWidth) {
+    final screenWidth = Get.width;
+    final offset = (index * itemWidth) - (screenWidth / 2) + (itemWidth / 2);
+
+    if (controller.hasClients) {
+      controller.animateTo(
+        offset.clamp(0, controller.position.maxScrollExtent),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 
   List<Task> get filteredTasks {

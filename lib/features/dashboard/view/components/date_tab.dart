@@ -7,7 +7,6 @@ import '../../../../shared/styles/color_style.dart';
 import '../../controllers/dashboard_controller.dart';
 
 Widget buildDateSelector() {
-  final scrollController = ScrollController();
   final controller = DashboardController.to;
 
   return Obx(() {
@@ -18,7 +17,7 @@ Widget buildDateSelector() {
     final dates = List.generate(15, (index) {
       final date = start.add(Duration(days: index));
       return {
-        'day': DateFormat.E(Get.locale.toString()).format(date), 
+        'day': DateFormat.E(Get.locale.toString()).format(date),
         'date': date.day.toString(),
         'fullDate': date,
       };
@@ -32,9 +31,12 @@ Widget buildDateSelector() {
             date.day == today.day;
       });
 
-      if (scrollController.hasClients && todayIndex != -1) {
-        final itemWidth = 60.w;
-        scrollController.jumpTo(todayIndex * itemWidth);
+      if (todayIndex != -1 && controller.selectedDateIndex.value == null) {
+        controller.scrollToCenter(
+          controller.scrollController,
+          todayIndex,
+          60.w,
+        );
       }
     });
 
@@ -42,7 +44,7 @@ Widget buildDateSelector() {
       height: 60,
       margin: EdgeInsets.symmetric(vertical: 8.h),
       child: ListView.builder(
-        controller: scrollController,
+        controller: controller.scrollController,
         scrollDirection: Axis.horizontal,
         itemCount: dates.length,
         itemBuilder: (context, index) {
@@ -59,6 +61,7 @@ Widget buildDateSelector() {
             isSelected: isSelected,
             isToday: isToday,
             fullDate: date,
+            controller: controller,
           );
         },
       ),
@@ -73,15 +76,19 @@ Widget _buildDateItem({
   required bool isSelected,
   required bool isToday,
   required DateTime fullDate,
+  required DashboardController controller,
 }) {
   return GestureDetector(
     onTap: () {
-      if (DashboardController.to.selectedDateIndex.value == index) {
-        DashboardController.to.selectedDateIndex.value = null;
-        DashboardController.to.selectedDate.value = null;
+      if (controller.selectedDateIndex.value == index) {
+        controller.clearSelectedDate();
       } else {
-        DashboardController.to.selectedDateIndex.value = index;
-        DashboardController.to.selectedDate.value = fullDate;
+        controller.selectDate(index, fullDate);
+        controller.scrollToCenter(
+          controller.scrollController,
+          index,
+          60.w,
+        );
       }
     },
     child: Container(

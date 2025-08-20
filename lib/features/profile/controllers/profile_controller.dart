@@ -43,6 +43,7 @@ class ProfileController extends GetxController {
   var userId = ''.obs;
   var isEditingUsername = false.obs;
   late FocusNode usernameFocusNode;
+  var locationText = 'Location not set'.obs;
 
   var isLoading = false.obs;
 
@@ -60,6 +61,7 @@ class ProfileController extends GetxController {
     super.onInit();
     selectedLanguage.value = language ?? '';
     usernameFocusNode = FocusNode();
+    loadLocation();
     fetchUserData();
   }
 
@@ -72,6 +74,27 @@ class ProfileController extends GetxController {
     address.dispose();
     usernameFocusNode.dispose();
     super.onClose();
+  }
+
+  void loadLocation() {
+    final data = LocalStorageService.getUserLocation();
+    if (data != null) {
+      final city = data['city'] ?? '';
+      final province = data['province'] ?? '';
+
+      if (city.isNotEmpty &&
+          city != 'Unknown' &&
+          province.isNotEmpty &&
+          province != 'Unknown') {
+        locationText.value = '$city, $province';
+      } else if (city.isNotEmpty && city != 'Unknown') {
+        locationText.value = city;
+      } else {
+        locationText.value = 'Location not available'.tr;
+      }
+    } else {
+      locationText.value = 'Location not available'.tr;
+    }
   }
 
   void toggleEditingUsername() {

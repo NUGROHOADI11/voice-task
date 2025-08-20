@@ -18,6 +18,7 @@ void customBottomSheet({
   final formKey = GlobalKey<FormState>();
 
   showModalBottomSheet(
+    useSafeArea: true,
     context: Get.context!,
     isScrollControlled: true,
     backgroundColor: Colors.white,
